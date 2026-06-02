@@ -45,8 +45,11 @@ export function createMainWindow(): BrowserWindow {
   }
 
   mainWindow = new BrowserWindow({
-    width: 720,
-    height: 560,
+    width: 1100,
+    height: 720,
+    minWidth: 880,
+    minHeight: 600,
+    center: true,
     show: false,
     title: 'MindFlow',
     autoHideMenuBar: true,
