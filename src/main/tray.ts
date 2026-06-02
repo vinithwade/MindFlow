@@ -21,10 +21,10 @@ export function createTray(): void {
     const img = nativeImage.createFromDataURL(TRAY_ICON)
     img.setTemplateImage(true)
     tray = new Tray(img)
-    tray.setToolTip('Voice Reply Assistant')
+    tray.setToolTip('MindFlow')
     tray.setContextMenu(
       Menu.buildFromTemplate([
-        { label: 'Open Voice Reply', click: openMain },
+        { label: 'Open MindFlow', click: openMain },
         { type: 'separator' },
         { label: 'Quit', click: () => app.quit() }
       ])

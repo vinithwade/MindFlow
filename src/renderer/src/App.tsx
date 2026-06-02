@@ -77,7 +77,7 @@ export function App(): JSX.Element {
             <AudioLines size={18} strokeWidth={2.25} />
           </div>
           <div className="min-w-0 flex-1 leading-tight">
-            <div className="truncate text-sm font-semibold text-gray-900">Voice Reply</div>
+            <div className="truncate text-sm font-semibold text-gray-900">MindFlow</div>
             <div className="text-[11px] text-gray-400">Assistant</div>
           </div>
           <span className="rounded-md border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[10px] font-medium text-gray-500">
@@ -192,7 +192,7 @@ function General({
             <div>
               <div className="text-sm font-medium text-gray-800">Launch at login</div>
               <p className="mt-0.5 max-w-sm text-xs text-gray-500">
-                Start Voice Reply automatically when you log in.
+                Start MindFlow automatically when you log in.
               </p>
             </div>
             <Toggle
@@ -324,7 +324,7 @@ function AuthGate(): JSX.Element {
           <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-2xl shadow-sm">
             🎙️
           </div>
-          <div className="text-base font-semibold text-gray-900">Voice Reply Assistant</div>
+          <div className="text-base font-semibold text-gray-900">MindFlow</div>
         </div>
         <Login />
       </div>
@@ -447,7 +447,7 @@ function Account({
 function About(): JSX.Element {
   return (
     <div className="max-w-lg">
-      <Header title="About" sub="Voice Reply Assistant" />
+      <Header title="About" sub="MindFlow" />
       <Card>
         <p className="text-sm leading-relaxed text-gray-600">
           Hold your shortcut, speak your intent, and get a polished reply for whatever is on screen —

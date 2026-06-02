@@ -72,7 +72,7 @@ Supabase Functions runtime — you do not put it in the app.)
   on another machine pulls them back.
 
 ## Notes
-- The OAuth deep link (`voicereply://`) is most reliable in the **packaged app**
+- The OAuth deep link (`mindflow://`) is most reliable in the **packaged app**
   (the scheme is registered via electron-builder `protocols`). In `npm run dev`
   it usually works, but if the browser can't reopen the app, use email sign-in
   while developing.

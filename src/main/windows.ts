@@ -47,7 +47,7 @@ export function createMainWindow(): BrowserWindow {
     width: 720,
     height: 560,
     show: false,
-    title: 'Voice Reply Assistant',
+    title: 'MindFlow',
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

@@ -10,7 +10,7 @@ import { screenshotToFile } from './macos'
  * Note: full-screen OCR is coarse; selection/accessibility paths are preferred.
  */
 export async function ocrActiveScreen(): Promise<string | null> {
-  const path = join(tmpdir(), `vra_shot_${Date.now()}.png`)
+  const path = join(tmpdir(), `mindflow_shot_${Date.now()}.png`)
   const ok = await screenshotToFile(path)
   if (!ok) return null
 

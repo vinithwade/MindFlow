@@ -1,4 +1,4 @@
-# Voice Reply Assistant
+# MindFlow
 
 A desktop **communication copilot**. Read a tweet / email / DM, **hold a shortcut, speak your intent**, and a polished, human-sounding reply appears in a floating overlay — ready to insert. No copy-paste into ChatGPT, no prompt engineering.
 

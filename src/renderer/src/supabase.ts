@@ -5,7 +5,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js'
  * (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY) — see SUPABASE_SETUP.md.
  *
  * PKCE flow + `detectSessionInUrl: false` because this is a desktop app: the
- * OAuth redirect arrives via a custom `voicereply://` deep link that we handle
+ * OAuth redirect arrives via a custom `mindflow://` deep link that we handle
  * manually (exchangeCodeForSession), not via the page URL.
  */
 const url = import.meta.env.VITE_SUPABASE_URL

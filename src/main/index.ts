@@ -32,7 +32,7 @@ import {
 
 /**
  * Main process: owns the global push-to-talk hotkey, the overlay lifecycle,
- * and the IPC surface. Also handles the `voicereply://` OAuth deep link.
+ * and the IPC surface. Also handles the `mindflow://` OAuth deep link.
  */
 
 // Crash reporting first (no-op without a DSN), then safety nets.
@@ -40,7 +40,7 @@ initSentry()
 process.on('uncaughtException', (err) => log.error('[main] uncaughtException:', err))
 process.on('unhandledRejection', (reason) => log.error('[main] unhandledRejection:', reason))
 
-const PROTOCOL = 'voicereply'
+const PROTOCOL = 'mindflow'
 /** Candidate loopback ports for the OAuth redirect (allowlist all in Supabase). */
 const AUTH_PORTS = [8765, 8766, 8767]
 let authPort = AUTH_PORTS[0]
@@ -104,7 +104,7 @@ function startAuthServer(portIdx = 0): void {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })
       res.end(
         '<!doctype html><html><body style="font-family:-apple-system,system-ui;text-align:center;padding-top:90px;color:#111">' +
-          '<h2>✅ Signed in</h2><p style="color:#666">You can close this tab and return to Voice Reply Assistant.</p>' +
+          '<h2>✅ Signed in</h2><p style="color:#666">You can close this tab and return to MindFlow.</p>' +
           '</body></html>'
       )
     } else {
@@ -215,7 +215,7 @@ function registerIpc(): void {
 }
 
 app.whenReady().then(() => {
-  electronApp.setAppUserModelId('com.voicereply.assistant')
+  electronApp.setAppUserModelId('com.mindflow.app')
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)

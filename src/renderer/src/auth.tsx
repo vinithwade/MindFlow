@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
       if (event === 'SIGNED_IN' && s) void syncOnSignIn()
     })
 
-    // OAuth deep-link callback (voicereply://auth-callback?code=…) from main.
+    // OAuth deep-link callback (mindflow://auth-callback?code=…) from main.
     const offCb = window.api.onAuthCallback((url) => void handleCallback(url))
 
     return () => {

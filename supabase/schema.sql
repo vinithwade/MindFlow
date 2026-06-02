@@ -1,4 +1,4 @@
--- Voice Reply Assistant — Supabase schema (run in the SQL Editor).
+-- MindFlow — Supabase schema (run in the SQL Editor).
 -- Per-user data with Row Level Security: each user can only see/modify their own rows.
 
 -- ── profiles ────────────────────────────────────────────────────────────────

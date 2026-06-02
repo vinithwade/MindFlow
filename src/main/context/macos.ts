@@ -51,7 +51,7 @@ export async function activateProcess(processName: string): Promise<void> {
  */
 export async function getSelectedText(): Promise<string | null> {
   const original = clipboard.readText()
-  const sentinel = `__vra_sentinel_${Date.now()}__`
+  const sentinel = `__mindflow_sentinel_${Date.now()}__`
   clipboard.writeText(sentinel)
 
   try {

@@ -1,9 +1,9 @@
 {
-  "name": "voice-reply-assistant",
+  "name": "mindflow",
   "version": "0.1.0",
-  "description": "Context-Aware Voice Reply Assistant — voice intent + screen context → polished replies",
+  "description": "Context-Aware MindFlow — voice intent + screen context → polished replies",
   "main": "./out/main/index.js",
-  "author": "wishper_brain",
+  "author": "MindFlow",
   "license": "MIT",
   "scripts": {
     "dev": "electron-vite dev",
@@ -20,16 +20,16 @@
     "release": "electron-vite build && electron-builder --mac --arm64 --publish always"
   },
   "build": {
-    "appId": "com.voicereply.assistant",
-    "productName": "Voice Reply Assistant",
+    "appId": "com.mindflow.app",
+    "productName": "MindFlow",
     "directories": {
       "output": "dist"
     },
     "protocols": [
       {
-        "name": "Voice Reply",
+        "name": "MindFlow",
         "schemes": [
-          "voicereply"
+          "mindflow"
         ]
       }
     ],
@@ -71,13 +71,13 @@
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist",
       "extendInfo": {
-        "NSMicrophoneUsageDescription": "Voice Reply Assistant needs the microphone to transcribe what you say.",
-        "NSAppleEventsUsageDescription": "Voice Reply Assistant uses automation to read the active app's text and paste replies.",
+        "NSMicrophoneUsageDescription": "MindFlow needs the microphone to transcribe what you say.",
+        "NSAppleEventsUsageDescription": "MindFlow uses automation to read the active app's text and paste replies.",
         "LSUIElement": false
       }
     },
     "dmg": {
-      "title": "Voice Reply Assistant"
+      "title": "MindFlow"
     }
   },
   "dependencies": {

@@ -47,7 +47,7 @@ What happens automatically:
 
 ## Verify the result
 ```bash
-APP="dist/mac-arm64/Voice Reply Assistant.app"
+APP="dist/mac-arm64/MindFlow.app"
 codesign --verify --deep --strict --verbose=2 "$APP"
 xcrun stapler validate "$APP"
 spctl -a -vvv -t install "$APP"   # expect: source=Notarized Developer ID

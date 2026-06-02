@@ -42,7 +42,7 @@ export function initAutoUpdater(): void {
         defaultId: 0,
         cancelId: 1,
         title: 'Update ready',
-        message: `Voice Reply Assistant ${info.version} is ready to install.`,
+        message: `MindFlow ${info.version} is ready to install.`,
         detail: 'Restart the app to finish updating.'
       })
       .then((res) => {

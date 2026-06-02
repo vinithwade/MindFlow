@@ -1,4 +1,4 @@
-# Terms of Service — Voice Reply Assistant
+# Terms of Service — MindFlow
 
 _Last updated: 2026-06-02_
 
@@ -6,7 +6,7 @@ _Last updated: 2026-06-02_
 > jurisdiction before publishing. Replace contact/company details.
 
 ## 1. Acceptance
-By installing or using Voice Reply Assistant ("the app"), you agree to these
+By installing or using MindFlow ("the app"), you agree to these
 Terms. If you don't agree, don't use the app.
 
 ## 2. What the app does

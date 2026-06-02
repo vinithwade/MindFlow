@@ -1,4 +1,4 @@
-# Privacy Policy — Voice Reply Assistant
+# Privacy Policy — MindFlow
 
 _Last updated: 2026-06-02_
 
@@ -6,7 +6,7 @@ _Last updated: 2026-06-02_
 > your jurisdiction before publishing as your official policy. Replace
 > `support@yourdomain.com` and the company name with your details.
 
-Voice Reply Assistant ("the app", "we") is a macOS desktop app that turns your
+MindFlow ("the app", "we") is a macOS desktop app that turns your
 voice plus what's on your screen into a polished, ready‑to‑send reply. This
 policy explains what data the app handles and where it goes.
 

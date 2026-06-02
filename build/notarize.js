@@ -24,7 +24,7 @@ exports.default = async function notarizing(context) {
   console.log(`[notarize] submitting ${appPath} to Apple (this can take a few minutes)…`)
 
   await notarize({
-    appBundleId: 'com.voicereply.assistant',
+    appBundleId: 'com.mindflow.app',
     appPath,
     appleId: APPLE_ID,
     appleIdPassword: APPLE_APP_SPECIFIC_PASSWORD,
