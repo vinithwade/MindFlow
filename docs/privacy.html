@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy Policy — Voice Reply Assistant</title>
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif; max-width: 720px;
+        margin: 60px auto; padding: 0 20px; color: #111; line-height: 1.6; }
+      h1 { font-size: 28px; } h2 { margin-top: 28px; font-size: 18px; }
+      code { background: #f3f4f6; padding: 1px 5px; border-radius: 4px; }
+      .muted { color: #666; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <h1>Privacy Policy — Voice Reply Assistant</h1>
+    <p class="muted">Last updated: 2026-06-02</p>
+
+    <p>Voice Reply Assistant ("the app", "we") is a macOS desktop app that turns your voice plus what's
+      on your screen into a polished, ready-to-send reply. This policy explains what data the app
+      handles and where it goes.</p>
+
+    <h2>What the app processes</h2>
+    <ul>
+      <li><strong>Microphone audio (transient).</strong> When you hold the shortcut, audio is recorded
+        and sent to your selected speech-to-text provider for transcription. Raw audio is not stored
+        after transcription.</li>
+      <li><strong>On-screen content (transient).</strong> To ground a reply, the app reads the text
+        you're replying to — via your selection, macOS Accessibility, or (only if you enable it) a
+        screenshot processed by on-device OCR. This is sent to your selected AI model to generate a reply.</li>
+      <li><strong>Generated replies &amp; transcripts.</strong> Stored locally; if you sign in, synced to
+        your account across devices.</li>
+      <li><strong>Account info.</strong> If you create an account, we store your email and (optionally) name.</li>
+      <li><strong>Settings.</strong> Stored locally and, if signed in, synced. <strong>API keys are
+        encrypted on your device</strong> and are never transmitted to our servers.</li>
+    </ul>
+
+    <h2>Third-party services</h2>
+    <p>Depending on your configuration, data may be sent to: <strong>OpenAI</strong>/<strong>Anthropic</strong>
+      (reply generation, OpenAI Whisper for transcription), <strong>Deepgram</strong> (transcription),
+      <strong>Supabase</strong> (auth + sync), and <strong>Google</strong> (only if you choose Google
+      sign-in — email + basic profile). We send only what's needed for the requested action.</p>
+
+    <h2>Storage &amp; retention</h2>
+    <p>Local data stays on your Mac until you clear it or delete the app. Synced data is retained until
+      you delete it or delete your account. Deleting your account removes your synced replies, settings,
+      and profile.</p>
+
+    <h2>Your choices</h2>
+    <p>Use the app without signing in (no sync); disable screenshot OCR (off by default); clear local
+      history, export your data, or delete your account from the app's Account settings.</p>
+
+    <h2>Security</h2>
+    <p>API keys are encrypted at rest using the OS keychain. Network requests use HTTPS. Per-user data is
+      isolated with row-level security.</p>
+
+    <h2>Contact</h2>
+    <p>Questions or data requests: <strong>support@yourdomain.com</strong>.</p>
+  </body>
+</html>
