@@ -18,10 +18,11 @@ const OVERLAY_SIZES: Record<OverlayMode, { w: number; h: number }> = {
   card: { w: 420, h: 480 } // portrait reply card
 }
 let currentMode: OverlayMode = 'pill'
-// The overlay is pinned to the RIGHT edge, vertically centered, on the active
-// display; the card grows leftward from there. We remember which display.
+// The overlay is anchored to the BOTTOM-RIGHT corner of the active display
+// (Wispr-Flow-style, Dock-aware); the card grows up-and-left from there. We
+// remember which display so it follows the cursor across monitors/Spaces.
 let overlayDisplay: Electron.Display | null = null
-const RIGHT_MARGIN = 16
+const MARGIN = 16 // gap off the right and bottom edges of the work area
 
 function rendererEntry(htmlFile: string): { url?: string; file?: string } {
   // In dev, electron-vite serves renderer entries from a dev server.
@@ -74,6 +75,11 @@ export function getOverlayWindow(): BrowserWindow {
     show: false,
     frame: false,
     transparent: true,
+    // 'panel' makes this an NSPanel. Critical on macOS: a normal window cannot
+    // float over ANOTHER app's full-screen Space no matter what flags are set —
+    // only a panel can join full-screen Spaces. This is what lets the overlay
+    // appear over full-screen WhatsApp/Safari/etc.
+    type: 'panel',
     // Programmatic resize (pill <-> card) needs resizable; frameless hides handles.
     resizable: true,
     movable: true,
@@ -88,26 +94,33 @@ export function getOverlayWindow(): BrowserWindow {
   })
 
   // Float above full-screen apps too, and don't steal focus from the source app
-  // until the user interacts with it.
+  // until the user interacts with it. skipTransformProcessType avoids the Dock
+  // flicker that setVisibleOnAllWorkspaces otherwise causes.
   overlayWindow.setAlwaysOnTop(true, 'screen-saver')
-  overlayWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
+  overlayWindow.setVisibleOnAllWorkspaces(true, {
+    visibleOnFullScreen: true,
+    skipTransformProcessType: true
+  })
 
   loadEntry(overlayWindow, 'overlay.html')
   return overlayWindow
 }
 
-/** Place the overlay at the right edge, vertically centered, for a given size. */
+/** Anchor the overlay to the bottom-right corner of the active display. */
 function positionOverlay(mode: OverlayMode, heightOverride?: number): void {
   if (!overlayWindow || overlayWindow.isDestroyed()) return
   const display = overlayDisplay ?? screen.getPrimaryDisplay()
+  // workArea excludes the Dock and menu bar, so anchoring inside it keeps us
+  // above/beside the Dock automatically — never covering it (Dock-aware).
   const { x: dx, y: dy, width: dw, height: dh } = display.workArea
   const w = OVERLAY_SIZES[mode].w
   // Clamp content-driven height so it never exceeds the screen.
   const h = Math.min(heightOverride ?? OVERLAY_SIZES[mode].h, dh - 24)
-  // Right edge a fixed margin from the screen edge; vertically centered, so the
-  // card grows leftward and stays centered as its height changes.
-  const x = Math.round(dx + dw - w - RIGHT_MARGIN)
-  const y = Math.round(dy + (dh - h) / 2)
+  // Bottom-right corner, a fixed margin off both edges. Because both the right
+  // and bottom are fixed, the card grows up-and-left from the corner as its
+  // width (pill→card) and height change.
+  const x = Math.round(dx + dw - w - MARGIN)
+  const y = Math.round(dy + dh - h - MARGIN)
   overlayWindow.setBounds({ x, y, width: w, height: h })
 }
 
@@ -118,6 +131,17 @@ export function showOverlayNearCursor(): void {
   overlayDisplay = screen.getDisplayNearestPoint(screen.getCursorScreenPoint())
   currentMode = 'pill'
   positionOverlay('pill')
+  // Re-assert on every show: macOS gives each full-screen app its own Space, and
+  // Electron drops these collection flags across hide/show cycles (we app.hide()
+  // after each insert). Without re-applying, the overlay won't appear over a
+  // full-screen app (e.g. WhatsApp full-screen) — only on the regular desktop.
+  win.setAlwaysOnTop(true, 'screen-saver')
+  win.setVisibleOnAllWorkspaces(true, {
+    visibleOnFullScreen: true,
+    skipTransformProcessType: true
+  })
+  // showInactive (not show/focus) so we never switch the user's Space or steal
+  // focus from the app they're replying to.
   win.showInactive()
 }
 
@@ -125,6 +149,13 @@ export function showOverlayNearCursor(): void {
 export function setOverlayMode(mode: OverlayMode): void {
   currentMode = mode
   positionOverlay(mode)
+  // When the reply card appears, take keyboard focus so the user can just hit
+  // Enter to Send right away. During the pill/recording phase we stay inactive
+  // so we never interrupt the source app; only the actionable card grabs focus.
+  // The card's autoFocus'd draft then receives keystrokes immediately.
+  if (mode === 'card' && overlayWindow && !overlayWindow.isDestroyed()) {
+    overlayWindow.focus()
+  }
 }
 
 /** Resize the overlay window to fit the renderer's measured content height. */

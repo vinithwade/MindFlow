@@ -14,8 +14,29 @@ async function osascript(script: string): Promise<string> {
   return stdout.trim()
 }
 
+/**
+ * Processes that must never be recorded as the "source app" to paste into:
+ * MindFlow itself (Electron in dev), and macOS's transient screenshot tools.
+ * If one of these is frontmost when the user triggers, we fall back to the
+ * last real app instead of re-activating it on insert (which would flash a
+ * screenshot/Finder window forward instead of the page they're replying to).
+ */
+const SOURCE_DENYLIST = new Set([
+  'Electron', // us, in dev
+  'MindFlow', // us, packaged
+  'screencaptureui', // Cmd-Shift-4/5 interactive screenshot UI
+  'Screenshot', // Screenshot.app
+  'Screencapture'
+])
+
+type FrontApp = { app: string; process: string; title: string }
+const EMPTY_FRONT: FrontApp = { app: '', process: '', title: '' }
+// Remember the last genuine foreground app, so a transient tool being frontmost
+// at trigger time doesn't hijack the insertion target.
+let lastRealFront: FrontApp | null = null
+
 /** Frontmost application: friendly name, raw process name, and window title. */
-export async function getFrontApp(): Promise<{ app: string; process: string; title: string }> {
+export async function getFrontApp(): Promise<FrontApp> {
   const script = `
     tell application "System Events"
       set frontApp to first process whose frontmost is true
@@ -30,9 +51,13 @@ export async function getFrontApp(): Promise<{ app: string; process: string; tit
   try {
     const out = await osascript(script)
     const [app = '', title = ''] = out.split('||')
-    return { app: friendlyAppName(app, title), process: app, title }
+    // Ignore ourselves and transient screenshot tools: target the last real app.
+    if (!app || SOURCE_DENYLIST.has(app)) return lastRealFront ?? EMPTY_FRONT
+    const result: FrontApp = { app: friendlyAppName(app, title), process: app, title }
+    lastRealFront = result
+    return result
   } catch {
-    return { app: '', process: '', title: '' }
+    return lastRealFront ?? EMPTY_FRONT
   }
 }
 
@@ -101,6 +126,11 @@ export async function getAccessibilityText(): Promise<string | null> {
 /** Send Cmd+V to the frontmost app (used by the insertion layer). */
 export async function sendPaste(): Promise<void> {
   await osascript('tell application "System Events" to keystroke "v" using command down')
+}
+
+/** Press Return in the frontmost app — used by "Send" to fire the message off. */
+export async function sendEnter(): Promise<void> {
+  await osascript('tell application "System Events" to key code 36')
 }
 
 /** Capture the active display to a PNG and return the file path (for OCR). */

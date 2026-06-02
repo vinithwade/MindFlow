@@ -168,11 +168,11 @@ export async function insertReply(text?: string): Promise<void> {
 export function dismissSession(): void {
   const proc = current?.context.appProcess
   current = null
+  // Hide the whole app (overlay + dashboard) so our Settings window doesn't pop
+  // forward when the overlay closes, then pin focus back to the source app.
   hideOverlay()
-  // Return focus to the app the user came from, so our Settings window doesn't
-  // pop forward when the overlay closes. If unknown, drop our app to background.
-  if (proc) void activateProcess(proc).catch(() => app.hide())
-  else app.hide()
+  app.hide()
+  if (proc) void activateProcess(proc).catch(() => undefined)
 }
 
 export function getCurrentSession(): ReplySession | null {

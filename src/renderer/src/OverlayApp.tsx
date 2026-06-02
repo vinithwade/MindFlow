@@ -190,7 +190,7 @@ function CardView({
               disabled={!draft.trim()}
               onClick={() => void window.api.insert(draft)}
             >
-              Insert <Kbd inline>⏎</Kbd>
+              Send <Kbd inline>⏎</Kbd>
             </button>
             <ActionButton onClick={() => void window.api.regenerate()}>
               Regenerate <Kbd inline>⌘R</Kbd>
