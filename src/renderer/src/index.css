@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+/* The overlay window is transparent — let the rounded panel define the shape. */
+.overlay-body {
+  background: transparent;
+  overflow: hidden;
+  user-select: none;
+}
+
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Accessibility: visible keyboard focus on interactive elements. */
+button:focus-visible,
+a:focus-visible,
+[role='switch']:focus-visible,
+summary:focus-visible {
+  outline: 2px solid #2f7ff0;
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Respect the OS "Reduce motion" setting for CSS animations/transitions. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

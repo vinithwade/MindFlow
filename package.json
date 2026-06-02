@@ -1,0 +1,124 @@
+{
+  "name": "voice-reply-assistant",
+  "version": "0.1.0",
+  "description": "Context-Aware Voice Reply Assistant — voice intent + screen context → polished replies",
+  "main": "./out/main/index.js",
+  "author": "wishper_brain",
+  "license": "MIT",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "start": "electron-vite preview",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
+    "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
+    "typecheck": "npm run typecheck:node && npm run typecheck:web",
+    "lint": "eslint .",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "test": "vitest run",
+    "package:dir": "electron-vite build && electron-builder --mac dir --arm64",
+    "package": "electron-vite build && electron-builder --mac dmg --arm64",
+    "release": "electron-vite build && electron-builder --mac --arm64 --publish always"
+  },
+  "build": {
+    "appId": "com.voicereply.assistant",
+    "productName": "Voice Reply Assistant",
+    "directories": {
+      "output": "dist"
+    },
+    "protocols": [
+      {
+        "name": "Voice Reply",
+        "schemes": [
+          "voicereply"
+        ]
+      }
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "YOUR_GITHUB_USERNAME",
+        "repo": "voice-reply-assistant"
+      }
+    ],
+    "afterPack": "build/afterPack.js",
+    "afterSign": "build/notarize.js",
+    "files": [
+      "out/**",
+      "package.json"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "**/node_modules/node-global-key-listener/**",
+      "**/node_modules/tesseract.js/**",
+      "**/node_modules/tesseract.js-core/**",
+      "**/*.node"
+    ],
+    "mac": {
+      "icon": "build/icon.icns",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": "arm64"
+        },
+        {
+          "target": "zip",
+          "arch": "arm64"
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Voice Reply Assistant needs the microphone to transcribe what you say.",
+        "NSAppleEventsUsageDescription": "Voice Reply Assistant uses automation to read the active app's text and paste replies.",
+        "LSUIElement": false
+      }
+    },
+    "dmg": {
+      "title": "Voice Reply Assistant"
+    }
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "@deepgram/sdk": "^3.9.0",
+    "@electron-toolkit/preload": "^3.0.1",
+    "@electron-toolkit/utils": "^3.0.0",
+    "@sentry/electron": "^5.12.0",
+    "@supabase/supabase-js": "^2.106.2",
+    "electron-store": "^8.2.0",
+    "electron-updater": "^6.8.3",
+    "framer-motion": "^11.11.0",
+    "lucide-react": "^0.460.0",
+    "node-global-key-listener": "^0.3.0",
+    "openai": "^4.73.0",
+    "tesseract.js": "^5.1.1"
+  },
+  "devDependencies": {
+    "@electron/notarize": "^2.5.0",
+    "@eslint/js": "^9.39.4",
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "electron-vite": "^2.3.0",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^9.1.2",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.26",
+    "globals": "^15.15.0",
+    "postcss": "^8.4.49",
+    "prettier": "^3.8.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwindcss": "^3.4.15",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.60.1",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.9"
+  }
+}

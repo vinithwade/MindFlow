@@ -1,0 +1,18 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5b9dff"/>
+      <stop offset="1" stop-color="#2f7ff0"/>
+    </linearGradient>
+  </defs>
+  <!-- squircle background -->
+  <rect x="0" y="0" width="1024" height="1024" rx="228" ry="228" fill="url(#bg)"/>
+  <!-- white vertical waveform -->
+  <g fill="#ffffff">
+    <rect x="237" y="392" width="70" height="240" rx="35"/>
+    <rect x="357" y="292" width="70" height="440" rx="35"/>
+    <rect x="477" y="212" width="70" height="600" rx="35"/>
+    <rect x="597" y="312" width="70" height="400" rx="35"/>
+    <rect x="717" y="392" width="70" height="240" rx="35"/>
+  </g>
+</svg>
