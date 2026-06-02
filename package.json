@@ -36,8 +36,8 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "YOUR_GITHUB_USERNAME",
-        "repo": "voice-reply-assistant"
+        "owner": "vinithwade",
+        "repo": "MindFlow"
       }
     ],
     "afterPack": "build/afterPack.js",
