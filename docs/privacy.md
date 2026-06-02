@@ -4,7 +4,7 @@ _Last updated: 2026-06-02_
 
 > **Template notice:** This is a good‑faith starting draft. Have it reviewed for
 > your jurisdiction before publishing as your official policy. Replace
-> `support@yourdomain.com` and the company name with your details.
+> `support@mindflow.app` and the company name with your details.
 
 MindFlow ("the app", "we") is a macOS desktop app that turns your
 voice plus what's on your screen into a polished, ready‑to‑send reply. This
@@ -62,4 +62,4 @@ requests use HTTPS. Per‑user data is isolated with row‑level security.
 
 ## Contact
 
-Questions or data requests: **support@yourdomain.com**.
+Questions or data requests: **support@mindflow.app**.

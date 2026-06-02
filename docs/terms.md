@@ -46,4 +46,4 @@ access for violations of these Terms.
 We may update these Terms; continued use after changes means acceptance.
 
 ## 10. Contact
-**support@yourdomain.com**
+**support@mindflow.app**
