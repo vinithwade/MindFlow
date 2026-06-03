@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { AppSettings } from '@shared/types'
 import { Segmented, KeyInput } from './ui'
 import { PermissionsPanel } from './PermissionsPanel'
+import logo from './assets/logo.png'
 
 /**
  * First-run guided setup: choose a provider + key → grant permissions → done.
@@ -33,7 +34,7 @@ export function Onboarding({ onDone }: { onDone: () => void }): JSX.Element {
       title: 'Welcome',
       body: (
         <div className="space-y-4 text-center">
-          <div className="text-5xl">🎙️</div>
+          <img src={logo} alt="MindFlow" className="mx-auto h-20 w-20" />
           <h1 className="text-2xl font-semibold text-gray-900">MindFlow</h1>
           <p className="mx-auto max-w-sm text-sm leading-relaxed text-gray-500">
             Read a tweet, email, or DM. Hold a shortcut, say what you mean, and a polished reply

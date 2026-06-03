@@ -1,4 +1,4 @@
-import { app, ipcMain, session, shell, systemPreferences } from 'electron'
+import { app, ipcMain, session, shell, systemPreferences, nativeImage } from 'electron'
 import { createServer, Server } from 'http'
 import { join } from 'path'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
@@ -219,6 +219,13 @@ function registerIpc(): void {
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.mindflow.app')
+
+  // In dev the dock shows the generic Electron icon; set our MindFlow icon.
+  // (Packaged builds get the icon from build/icon.icns via electron-builder.)
+  if (process.platform === 'darwin' && !app.isPackaged) {
+    const img = nativeImage.createFromPath(join(process.cwd(), 'build', 'icon-1024.png'))
+    if (!img.isEmpty()) app.dock?.setIcon(img)
+  }
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
