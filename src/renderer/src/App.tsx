@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import {
-  AudioLines,
   House,
   Zap,
   CreditCard,
@@ -11,6 +10,7 @@ import {
   Info,
   type LucideIcon
 } from 'lucide-react'
+import logo from './assets/logo.png'
 import { AppSettings } from '@shared/types'
 import { Segmented, KeyInput, Card, Field, Toggle } from './ui'
 import { PermissionsPanel } from './PermissionsPanel'
@@ -110,9 +110,7 @@ export function App(): JSX.Element {
       <aside className="flex w-60 shrink-0 flex-col border-r border-gray-200 bg-white/70 px-3 pb-3 pt-4">
         {/* Brand */}
         <div className="flex items-center gap-2.5 px-2 pb-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent text-white shadow-sm">
-            <AudioLines size={18} strokeWidth={2.25} />
-          </div>
+          <img src={logo} alt="MindFlow" className="h-9 w-9 shrink-0" />
           <div className="min-w-0 flex-1 leading-tight">
             <div className="truncate text-sm font-semibold text-gray-900">MindFlow</div>
             <div className="text-[11px] text-gray-400">Assistant</div>
@@ -360,9 +358,7 @@ function AuthGate(): JSX.Element {
     <div className="flex h-screen w-screen items-center justify-center bg-canvas font-sans">
       <div className="w-full max-w-sm px-6">
         <div className="mb-2 flex flex-col items-center text-center">
-          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-2xl shadow-sm">
-            🎙️
-          </div>
+          <img src={logo} alt="MindFlow" className="mb-3 h-16 w-16" />
           <div className="text-base font-semibold text-gray-900">MindFlow</div>
         </div>
         <Login />
