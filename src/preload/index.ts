@@ -8,7 +8,8 @@ import {
   PermissionStatus,
   Hotkey,
   Dashboard,
-  ReplyHistoryItem
+  ReplyHistoryItem,
+  Usage
 } from '../shared/types'
 
 /**
@@ -22,12 +23,17 @@ const api = {
 
   // Dashboard (Home) data
   getDashboard: (): Promise<Dashboard> => ipcRenderer.invoke(IPC.GET_DASHBOARD),
+  // Usage & credits breakdown (computed from local history)
+  getUsage: (): Promise<Usage> => ipcRenderer.invoke(IPC.GET_USAGE),
 
   // Auth / sync helpers
   openExternal: (url: string): Promise<void> => ipcRenderer.invoke(IPC.OPEN_EXTERNAL, url),
   oauthBegin: (): Promise<void> => ipcRenderer.invoke(IPC.OAUTH_BEGIN),
   getAuthPort: (): Promise<number> => ipcRenderer.invoke(IPC.GET_AUTH_PORT),
   setAuthed: (authed: boolean): Promise<void> => ipcRenderer.invoke(IPC.SET_AUTHED, authed),
+  // Report the user's current credit balance so main can gate when it hits 0.
+  setCreditBalance: (balance: number | null): Promise<void> =>
+    ipcRenderer.invoke(IPC.SET_CREDIT_BALANCE, balance),
   mergeHistory: (items: ReplyHistoryItem[]): Promise<void> =>
     ipcRenderer.invoke(IPC.MERGE_HISTORY, items),
   clearHistory: (): Promise<void> => ipcRenderer.invoke(IPC.CLEAR_HISTORY),

@@ -98,6 +98,15 @@ export const DEFAULT_SETTINGS: AppSettings = {
   onboardingComplete: false
 }
 
+/**
+ * Credit tier a reply consumed. Standard = fast model (1 credit), Premium =
+ * top-quality model (8 credits), BYO = user's own key (0 credits, unmetered).
+ */
+export type ReplyTier = 'standard' | 'premium' | 'byo'
+
+/** Credits each tier costs — single source of truth (matches the pricing model). */
+export const CREDIT_COST: Record<ReplyTier, number> = { standard: 1, premium: 8, byo: 0 }
+
 /** One past reply, shown in the Home activity list. */
 export interface ReplyHistoryItem {
   id: string
@@ -105,6 +114,10 @@ export interface ReplyHistoryItem {
   app: string
   transcript: string
   reply: string
+  /** Which model tier produced it (drives the usage breakdown). */
+  tier?: ReplyTier
+  /** Credits this reply consumed (0/1/8). */
+  credits?: number
 }
 
 export interface DashboardStats {
@@ -117,6 +130,37 @@ export interface Dashboard {
   name: string
   stats: DashboardStats
   history: ReplyHistoryItem[]
+}
+
+/** Authoritative credit balance, read from Supabase (written by the billing gateway). */
+export interface CreditAccount {
+  plan: 'trial' | 'pro' | 'pro_plus'
+  balance: number
+  monthlyGrant: number
+  periodEnd: string | null // ISO date the credits reset
+}
+
+/** Usage breakdown for the "Usage & Credits" dashboard (computed from local history). */
+export interface UsageTier {
+  count: number
+  credits: number
+}
+export interface UsageByApp {
+  app: string
+  count: number
+  credits: number
+}
+export interface UsageDay {
+  day: string // dayKey, e.g. "2026-6-3"
+  credits: number
+}
+export interface Usage {
+  standard: UsageTier
+  premium: UsageTier
+  byApp: UsageByApp[] // top apps by credits spent
+  daily: UsageDay[] // last 30 days, oldest → newest
+  recent: ReplyHistoryItem[] // most recent consuming replies
+  totalCredits: number // credits spent across stored history
 }
 
 /** IPC channel names — single source of truth shared by preload + main. */
@@ -135,6 +179,7 @@ export const IPC = {
   CANCEL_HOTKEY_CAPTURE: 'hotkey:capture-cancel',
   RESIZE_OVERLAY: 'overlay:resize',
   GET_DASHBOARD: 'dashboard:get',
+  GET_USAGE: 'usage:get',
   OPEN_EXTERNAL: 'system:open-external',
   AUTH_CALLBACK: 'auth:callback',
   OAUTH_BEGIN: 'auth:oauth-begin',
@@ -144,6 +189,7 @@ export const IPC = {
   CLEAR_HISTORY: 'history:clear',
   TEST_API_KEY: 'providers:test-key',
   SET_AUTHED: 'auth:set-authed',
+  SET_CREDIT_BALANCE: 'credits:set-balance',
   // main -> renderer (send)
   SESSION_UPDATE: 'session:update',
   HOTKEY_PRESSED: 'hotkey:pressed',

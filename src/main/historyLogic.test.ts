@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest'
-import { mergeById, nextStreak, wordCount, dayKey } from './historyLogic'
+import {
+  mergeById,
+  nextStreak,
+  wordCount,
+  dayKey,
+  computeUsage,
+  creditsFor,
+  tierOf
+} from './historyLogic'
 import type { ReplyHistoryItem } from '../shared/types'
 
 const item = (id: string, time: number): ReplyHistoryItem => ({
@@ -27,6 +35,60 @@ describe('mergeById', () => {
   it('respects the max cap', () => {
     const items = Array.from({ length: 5 }, (_, i) => item('x' + i, i))
     expect(mergeById(items, [], 3)).toHaveLength(3)
+  })
+})
+
+describe('creditsFor / tierOf', () => {
+  it('defaults legacy items (no tier) to standard / 1 credit', () => {
+    expect(tierOf(item('a', 1))).toBe('standard')
+    expect(creditsFor(item('a', 1))).toBe(1)
+  })
+  it('uses explicit credits when set, else derives from tier', () => {
+    expect(creditsFor({ ...item('a', 1), tier: 'premium' })).toBe(8)
+    expect(creditsFor({ ...item('a', 1), tier: 'premium', credits: 8 })).toBe(8)
+    expect(creditsFor({ ...item('a', 1), tier: 'byo', credits: 0 })).toBe(0)
+  })
+})
+
+describe('computeUsage', () => {
+  const now = new Date('2026-06-03T10:00:00')
+  const mk = (id: string, app: string, tier: 'standard' | 'premium', daysAgo: number): ReplyHistoryItem => ({
+    id,
+    time: new Date(now).setDate(now.getDate() - daysAgo),
+    app,
+    transcript: 't',
+    reply: 'r',
+    tier,
+    credits: tier === 'premium' ? 8 : 1
+  })
+
+  it('splits tiers, totals credits, groups by app, builds a 30-day trend', () => {
+    const items = [
+      mk('a', 'WhatsApp', 'premium', 0),
+      mk('b', 'WhatsApp', 'standard', 0),
+      mk('c', 'Slack', 'standard', 1),
+      mk('d', 'Slack', 'premium', 40) // outside the 30-day window
+    ]
+    const u = computeUsage(items, now)
+
+    expect(u.premium).toEqual({ count: 2, credits: 16 })
+    expect(u.standard).toEqual({ count: 2, credits: 2 })
+    expect(u.totalCredits).toBe(18)
+    expect(u.byApp[0]).toEqual({ app: 'WhatsApp', count: 2, credits: 9 })
+    expect(u.daily).toHaveLength(30)
+    // today's bucket = premium(8) + standard(1) from WhatsApp
+    expect(u.daily[29].credits).toBe(9)
+    // the 40-days-ago item is excluded from the 30-day trend
+    expect(u.daily.reduce((s, d) => s + d.credits, 0)).toBe(10)
+    expect(u.recent[0].id).toBe('a')
+  })
+
+  it('handles empty history', () => {
+    const u = computeUsage([], now)
+    expect(u.totalCredits).toBe(0)
+    expect(u.byApp).toEqual([])
+    expect(u.daily).toHaveLength(30)
+    expect(u.recent).toEqual([])
   })
 })
 

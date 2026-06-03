@@ -13,7 +13,7 @@ import {
 import { getPermissionStatus, requestPermission } from './permissions'
 import { log } from './log'
 import { validateApiKey } from './validateKey'
-import { getDashboard, mergeReplies, clearHistory } from './history'
+import { getDashboard, getUsage, mergeReplies, clearHistory } from './history'
 import { ReplyHistoryItem } from '../shared/types'
 import { registerHotkey, unregisterHotkey, captureHotkey, cancelHotkeyCapture } from './hotkey'
 import { initAutoUpdater } from './updater'
@@ -27,7 +27,8 @@ import {
   dismissSession,
   regenerateCurrent,
   insertReply,
-  setAuthed
+  setAuthed,
+  setCreditBalance
 } from './pipeline'
 
 /**
@@ -174,10 +175,12 @@ function registerIpc(): void {
   ipcMain.handle(IPC.OVERLAY_DISMISS, () => dismissSession())
 
   ipcMain.handle(IPC.GET_DASHBOARD, () => getDashboard())
+  ipcMain.handle(IPC.GET_USAGE, () => getUsage())
   ipcMain.handle(IPC.OPEN_EXTERNAL, (_evt, url: string) => shell.openExternal(url))
   ipcMain.handle(IPC.OAUTH_BEGIN, () => armOAuth())
   ipcMain.handle(IPC.GET_AUTH_PORT, () => authPort)
   ipcMain.handle(IPC.SET_AUTHED, (_evt, v: boolean) => setAuthed(v))
+  ipcMain.handle(IPC.SET_CREDIT_BALANCE, (_evt, v: number | null) => setCreditBalance(v))
   ipcMain.handle(IPC.MERGE_HISTORY, (_evt, items: ReplyHistoryItem[]) => mergeReplies(items))
   ipcMain.handle(IPC.CLEAR_HISTORY, () => clearHistory())
   ipcMain.handle(

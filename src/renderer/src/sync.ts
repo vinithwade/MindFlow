@@ -55,6 +55,8 @@ export async function syncOnSignIn(): Promise<void> {
           app: r.app,
           transcript: r.transcript,
           reply: r.reply,
+          tier: r.tier ?? null,
+          credits: r.credits ?? 0,
           created_at: new Date(r.time).toISOString()
         })),
         { onConflict: 'id' }
@@ -64,7 +66,7 @@ export async function syncOnSignIn(): Promise<void> {
 
     const { data: cloud } = await supabase
       .from('replies')
-      .select('id, app, transcript, reply, created_at')
+      .select('id, app, transcript, reply, tier, credits, created_at')
       .order('created_at', { ascending: false })
       .limit(200)
 
@@ -74,6 +76,8 @@ export async function syncOnSignIn(): Promise<void> {
         app: r.app ?? '',
         transcript: r.transcript ?? '',
         reply: r.reply ?? '',
+        tier: (r.tier as ReplyHistoryItem['tier']) ?? undefined,
+        credits: typeof r.credits === 'number' ? r.credits : undefined,
         time: new Date(r.created_at).getTime()
       }))
       await window.api.mergeHistory(items)
@@ -103,6 +107,8 @@ export async function pushReply(item: ReplyHistoryItem): Promise<void> {
       app: item.app,
       transcript: item.transcript,
       reply: item.reply,
+      tier: item.tier ?? null,
+      credits: item.credits ?? 0,
       created_at: new Date(item.time).toISOString()
     },
     { onConflict: 'id' }

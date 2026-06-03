@@ -1,7 +1,7 @@
 import Store from 'electron-store'
 import os from 'os'
-import { Dashboard, ReplyHistoryItem } from '../shared/types'
-import { mergeById, nextStreak, wordCount } from './historyLogic'
+import { Dashboard, ReplyHistoryItem, ReplyTier, Usage } from '../shared/types'
+import { mergeById, nextStreak, wordCount, computeUsage } from './historyLogic'
 
 /**
  * Persists recent replies + lightweight usage stats for the Home dashboard.
@@ -31,6 +31,8 @@ export function recordReply(item: {
   app: string
   transcript: string
   reply: string
+  tier?: ReplyTier
+  credits?: number
 }): ReplyHistoryItem {
   const data = store.store
   const entry: ReplyHistoryItem = { ...item, time: Date.now() }
@@ -73,6 +75,11 @@ export function getDashboard(): Dashboard {
     },
     history: data.items
   }
+}
+
+/** Usage breakdown (tiers, by-app, 30-day trend, recent) for the Usage dashboard. */
+export function getUsage(): Usage {
+  return computeUsage(store.store.items, new Date())
 }
 
 function deriveName(): string {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Dashboard, ReplyHistoryItem, Hotkey } from '@shared/types'
+import { Dashboard, ReplyHistoryItem, Hotkey, CreditAccount } from '@shared/types'
+import { fetchCredits } from './credits'
 
 /**
  * Home dashboard — layout inspired by Wispr Flow: a greeting, a tip banner, a
@@ -7,10 +8,12 @@ import { Dashboard, ReplyHistoryItem, Hotkey } from '@shared/types'
  */
 export function Home({ hotkey }: { hotkey: Hotkey }): JSX.Element {
   const [data, setData] = useState<Dashboard | null>(null)
+  const [credits, setCredits] = useState<CreditAccount | null>(null)
 
   useEffect(() => {
     const load = (): void => {
       void window.api.getDashboard().then(setData)
+      void fetchCredits().then(setCredits)
     }
     load()
     // Refresh while the window is open so new replies appear.
@@ -43,7 +46,10 @@ export function Home({ hotkey }: { hotkey: Hotkey }): JSX.Element {
         </div>
 
         <div className="flex w-64 shrink-0 flex-col justify-center gap-3 rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4">
-          <Stat value={stats?.totalReplies ?? 0} label="total replies" />
+          <Stat
+            value={credits ? credits.balance : (stats?.totalReplies ?? 0)}
+            label={credits ? `credits left of ${credits.monthlyGrant.toLocaleString()}` : 'total replies'}
+          />
           <div className="h-px bg-gray-200" />
           <Stat value={stats?.totalWords ?? 0} label="words generated" />
           <div className="h-px bg-gray-200" />

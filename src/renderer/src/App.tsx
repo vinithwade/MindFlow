@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import {
   AudioLines,
   House,
+  Zap,
+  CreditCard,
   SlidersHorizontal,
   Sparkles,
   ShieldCheck,
@@ -15,17 +17,30 @@ import { PermissionsPanel } from './PermissionsPanel'
 import { ShortcutRecorder } from './ShortcutRecorder'
 import { Onboarding } from './Onboarding'
 import { Home } from './Home'
+import { Usage } from './Usage'
+import { Billing } from './Billing'
 import { Login } from './Login'
 import { useAuth } from './auth'
 import { pushSettings, pushReply } from './sync'
+import { fetchCredits, spendCredits } from './credits'
 import { PRIVACY_URL, TERMS_URL } from './legal'
 
-type Section = 'home' | 'general' | 'providers' | 'permissions' | 'account' | 'about'
+type Section =
+  | 'home'
+  | 'usage'
+  | 'billing'
+  | 'general'
+  | 'providers'
+  | 'permissions'
+  | 'account'
+  | 'about'
 type NavItem = { id: Section; label: string; Icon: LucideIcon }
 
 // Core navigation (top) and account/info (pinned to the bottom).
 const NAV_TOP: NavItem[] = [
   { id: 'home', label: 'Home', Icon: House },
+  { id: 'usage', label: 'Usage', Icon: Zap },
+  { id: 'billing', label: 'Plans', Icon: CreditCard },
   { id: 'general', label: 'General', Icon: SlidersHorizontal },
   { id: 'providers', label: 'Providers', Icon: Sparkles },
   { id: 'permissions', label: 'Permissions', Icon: ShieldCheck }
@@ -44,11 +59,33 @@ export function App(): JSX.Element {
     void window.api.getSettings().then(setSettings)
   }, [])
 
-  // When signed in (and sync enabled), push each new reply to the cloud.
+  // Keep main's credit gate in sync: report the balance on sign-in + periodically.
+  useEffect(() => {
+    let active = true
+    const report = async (): Promise<void> => {
+      const c = auth.session ? await fetchCredits() : null
+      if (active) await window.api.setCreditBalance(c ? c.balance : null)
+    }
+    void report()
+    const id = setInterval(() => void report(), 8000)
+    return () => {
+      active = false
+      clearInterval(id)
+    }
+  }, [auth.session])
+
+  // On each new reply: push to cloud (if syncing) and spend its credits.
   const syncEnabled = settings?.syncEnabled ?? true
   useEffect(() => {
     return window.api.onReplyRecorded((item) => {
-      if (auth.session && syncEnabled) void pushReply(item)
+      if (!auth.session) return
+      if (syncEnabled) void pushReply(item)
+      if (item.credits && item.credits > 0) {
+        void spendCredits(item.credits).then((newBalance) => {
+          // Push the freshly-decremented balance to main so the gate is current.
+          if (typeof newBalance === 'number') void window.api.setCreditBalance(newBalance)
+        })
+      }
     })
   }, [auth.session, syncEnabled])
 
@@ -105,6 +142,8 @@ export function App(): JSX.Element {
       {/* Content */}
       <main className="flex-1 overflow-y-auto px-8 py-7">
         {section === 'home' && <Home hotkey={settings.hotkey} />}
+        {section === 'usage' && <Usage onManage={() => setSection('billing')} />}
+        {section === 'billing' && <Billing />}
         {section === 'general' && <General settings={settings} save={save} />}
         {section === 'providers' && <Providers settings={settings} save={save} />}
         {section === 'permissions' && <Permissions />}

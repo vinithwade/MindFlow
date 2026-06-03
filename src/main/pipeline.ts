@@ -1,4 +1,4 @@
-import { IPC, ReplySession, ScreenContext } from '../shared/types'
+import { IPC, ReplySession, ScreenContext, ReplyTier, CREDIT_COST } from '../shared/types'
 import {
   getOverlayWindow,
   showOverlayNearCursor,
@@ -26,10 +26,17 @@ import { recordReply } from './history'
 let current: ReplySession | null = null
 /** The app is locked until the user signs in (set from the renderer). */
 let authed = false
+/** Latest known credit balance (from the renderer). null = unknown → fail open. */
+let creditBalance: number | null = null
 
 /** Renderer reports auth state so the hotkey is gated behind sign-in. */
 export function setAuthed(v: boolean): void {
   authed = v
+}
+
+/** Renderer reports the current credit balance so we can gate when it runs out. */
+export function setCreditBalance(v: number | null): void {
+  creditBalance = v
 }
 /** Screen context is captured in parallel with recording; awaited at generation. */
 let contextPromise: Promise<ScreenContext> | null = null
@@ -87,6 +94,19 @@ export function beginSession(): void {
     return
   }
 
+  // Out of credits → block and prompt to buy more. null balance = unknown
+  // (not signed in / credits not set up) → fail open so the app still works.
+  const cost =
+    getSettings().llmProvider === 'anthropic' ? CREDIT_COST.premium : CREDIT_COST.standard
+  if (creditBalance !== null && creditBalance < cost) {
+    showOverlayNearCursor()
+    patch({
+      status: 'error',
+      error: 'Out of credits — open MindFlow to buy more and keep replying.'
+    })
+    return
+  }
+
   // Capture screen context NOW (before the user's selection can change),
   // in parallel with recording — protects the <3s latency budget.
   contextPromise = captureContext({ enableOcr: getSettings().enableOcr }).catch(() => EMPTY_CONTEXT)
@@ -140,7 +160,16 @@ async function generate(transcript: string, context: ScreenContext): Promise<voi
   })
   patch({ status: 'ready', result })
   if (current) {
-    const entry = recordReply({ id: current.id, app: context.app, transcript, reply: result.reply })
+    // Premium model (Claude) = 8 credits, fast model (GPT) = 1 credit.
+    const tier: ReplyTier = settings.llmProvider === 'anthropic' ? 'premium' : 'standard'
+    const entry = recordReply({
+      id: current.id,
+      app: context.app,
+      transcript,
+      reply: result.reply,
+      tier,
+      credits: CREDIT_COST[tier]
+    })
     // Notify the renderer so it can sync the new reply to the cloud (if signed in).
     getMainWindow()?.webContents.send(IPC.REPLY_RECORDED, entry)
   }
