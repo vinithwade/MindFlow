@@ -1,4 +1,4 @@
-import { IPC, ReplySession, ScreenContext, ReplyTier, CREDIT_COST } from '../shared/types'
+import { IPC, ReplySession, ScreenContext, ReplyTier, CREDIT_COST, AppSettings } from '../shared/types'
 import {
   getOverlayWindow,
   showOverlayNearCursor,
@@ -7,7 +7,9 @@ import {
   getMainWindow,
   createMainWindow
 } from './windows'
-import { getSettings } from './settings'
+import { getSettings, setSettings } from './settings'
+import { extractCandidates, mergeDict } from './dictionaryLogic'
+import { detectEntities, newEntities } from './entityLogic'
 import { createSTTProvider, assertSTTConfigured } from './stt'
 import { captureContext } from './context'
 import { app } from 'electron'
@@ -132,8 +134,9 @@ export async function handleAudio(audio: Buffer, mimeType: string): Promise<void
 
   patch({ status: 'transcribing' })
   try {
-    const stt = createSTTProvider(getSettings())
-    const transcript = await stt.transcribe(audio, mimeType)
+    const settings = getSettings()
+    const stt = createSTTProvider(settings)
+    const transcript = await stt.transcribe(audio, mimeType, settings.dictionary)
     if (!transcript) {
       patch({ status: 'error', error: "Didn't catch that — try again." })
       return
@@ -156,7 +159,9 @@ async function generate(transcript: string, context: ScreenContext): Promise<voi
   const result = await llm.generate({
     context,
     transcript,
-    defaultTone: settings.defaultTone
+    defaultTone: settings.defaultTone,
+    dictionary: settings.dictionary,
+    myInfo: settings.myInfo
   })
   patch({ status: 'ready', result })
   if (current) {
@@ -190,8 +195,48 @@ export async function regenerateCurrent(): Promise<void> {
 export async function insertReply(text?: string): Promise<void> {
   const reply = (text ?? current?.result?.reply ?? '').trim()
   if (!reply) return
+  // Learn the user's unique words from the message they're actually sending.
+  learnFromReply(reply)
   await insertText(reply, current?.context.appProcess)
   current = null
+}
+
+/**
+ * Auto-learn proper-noun-like terms from the final sent reply (silent, Wispr-
+ * style). The reply is user-approved text, so it's a clean signal. Persists the
+ * dictionary and notifies the renderer so the UI updates + syncs.
+ */
+function learnFromReply(finalText: string): void {
+  const settings = getSettings()
+  const patch: Partial<AppSettings> = {}
+
+  // Dictionary: learn proper-noun-like words (silent).
+  if (settings.autoLearnDictionary) {
+    const next = mergeDict(settings.dictionary, extractCandidates(finalText))
+    if (next.length !== settings.dictionary.length) patch.dictionary = next
+  }
+
+  // My Info: detect email/links/phone/handles → add as PENDING (confirm-gated),
+  // never auto-trusted for use until the user confirms in the My Info tab.
+  if (settings.autoDetectMyInfo) {
+    const fresh = newEntities(settings.myInfo, detectEntities(finalText))
+    if (fresh.length) {
+      patch.myInfo = [
+        ...settings.myInfo,
+        ...fresh.map((e) => ({
+          id: randomUUID(),
+          label: e.label,
+          value: e.value,
+          kind: e.kind,
+          confirmed: false
+        }))
+      ]
+    }
+  }
+
+  if (!('dictionary' in patch) && !('myInfo' in patch)) return
+  const updated = setSettings(patch)
+  getMainWindow()?.webContents.send(IPC.SETTINGS_UPDATED, updated)
 }
 
 export function dismissSession(): void {

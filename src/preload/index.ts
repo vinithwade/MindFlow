@@ -52,6 +52,12 @@ const api = {
     ipcRenderer.on(IPC.REPLY_RECORDED, listener)
     return () => ipcRenderer.removeListener(IPC.REPLY_RECORDED, listener)
   },
+  // Main pushes updated settings (e.g. after auto-learning dictionary words).
+  onSettingsUpdated: (cb: (settings: AppSettings) => void): (() => void) => {
+    const listener = (_e: unknown, settings: AppSettings): void => cb(settings)
+    ipcRenderer.on(IPC.SETTINGS_UPDATED, listener)
+    return () => ipcRenderer.removeListener(IPC.SETTINGS_UPDATED, listener)
+  },
 
   // Permissions (macOS)
   getPermissions: (): Promise<PermissionStatus> => ipcRenderer.invoke(IPC.GET_PERMISSIONS),

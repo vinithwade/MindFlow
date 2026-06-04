@@ -74,6 +74,24 @@ export interface AppSettings {
   settingsUpdatedAt: number
   /** False until the user finishes first-run onboarding. */
   onboardingComplete: boolean
+  /** Personal dictionary: custom words to bias transcription + reply spelling. */
+  dictionary: string[]
+  /** Automatically learn proper-noun-like words from usage (Wispr-style). */
+  autoLearnDictionary: boolean
+  /** Reusable personal details (email, links, phone, handles) for replies. */
+  myInfo: MyInfoEntry[]
+  /** Auto-detect personal details from sent replies (pending confirmation). */
+  autoDetectMyInfo: boolean
+}
+
+/** A reusable personal detail the LLM can insert into a reply on request. */
+export type MyInfoKind = 'email' | 'link' | 'phone' | 'handle'
+export interface MyInfoEntry {
+  id: string
+  label: string // display, e.g. "Email", "LinkedIn"
+  value: string // the actual value to insert
+  kind: MyInfoKind
+  confirmed: boolean // false = auto-detected, awaiting user confirmation
 }
 
 export type PermissionState = 'granted' | 'denied' | 'unknown'
@@ -95,7 +113,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
   syncEnabled: true,
   launchAtLogin: false,
   settingsUpdatedAt: 0,
-  onboardingComplete: false
+  onboardingComplete: false,
+  dictionary: [],
+  autoLearnDictionary: true,
+  myInfo: [],
+  autoDetectMyInfo: true
 }
 
 /**
@@ -191,6 +213,7 @@ export const IPC = {
   SET_AUTHED: 'auth:set-authed',
   SET_CREDIT_BALANCE: 'credits:set-balance',
   // main -> renderer (send)
+  SETTINGS_UPDATED: 'settings:updated',
   SESSION_UPDATE: 'session:update',
   HOTKEY_PRESSED: 'hotkey:pressed',
   RECORDING_START: 'recording:start',

@@ -1,9 +1,17 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { AppSettings } from '@shared/types'
+import { AppSettings, MyInfoKind } from '@shared/types'
 import { Segmented, KeyInput } from './ui'
 import { PermissionsPanel } from './PermissionsPanel'
 import logo from './assets/logo.png'
+
+function uid(): string {
+  try {
+    return crypto.randomUUID()
+  } catch {
+    return 'id-' + Date.now() + '-' + Math.floor(Math.random() * 1e6)
+  }
+}
 
 /**
  * First-run guided setup: choose a provider + key → grant permissions → done.
@@ -20,6 +28,16 @@ export function Onboarding({ onDone }: { onDone: () => void }): JSX.Element {
   async function save(partial: Partial<AppSettings>): Promise<void> {
     const next = await window.api.setSettings(partial)
     setSettings(next)
+  }
+
+  // Read/write a single My Info entry by its label (onboarding fields).
+  function infoValue(label: string): string {
+    return (settings?.myInfo ?? []).find((e) => e.label === label)?.value ?? ''
+  }
+  function setInfo(kind: MyInfoKind, label: string, value: string): void {
+    const v = value.trim()
+    const rest = (settings?.myInfo ?? []).filter((e) => e.label !== label)
+    void save({ myInfo: v ? [...rest, { id: uid(), label, value: v, kind, confirmed: true }] : rest })
   }
 
   if (!settings) return <div className="h-screen w-screen bg-canvas" />
@@ -105,6 +123,28 @@ export function Onboarding({ onDone }: { onDone: () => void }): JSX.Element {
       canNext: true
     },
     {
+      title: 'Add your details',
+      body: (
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Make replies personal</h2>
+            <p className="mt-1 text-sm leading-relaxed text-gray-500">
+              Save a few details and MindFlow can drop them into a reply when you ask — "share my
+              email", "send my LinkedIn". All optional, editable later in{' '}
+              <span className="font-medium text-gray-700">My Info</span>.
+            </p>
+          </div>
+          <div className="space-y-3">
+            <OnbField label="Email" placeholder="you@email.com" value={infoValue('Email')} onChange={(v) => setInfo('email', 'Email', v)} />
+            <OnbField label="LinkedIn" placeholder="linkedin.com/in/you" value={infoValue('LinkedIn')} onChange={(v) => setInfo('link', 'LinkedIn', v)} />
+            <OnbField label="Phone" placeholder="+1 415 555 0199" value={infoValue('Phone')} onChange={(v) => setInfo('phone', 'Phone', v)} />
+            <OnbField label="X / handle" placeholder="@username" value={infoValue('X')} onChange={(v) => setInfo('handle', 'X', v)} />
+          </div>
+        </div>
+      ),
+      canNext: true
+    },
+    {
       title: "You're set",
       body: (
         <div className="space-y-4 text-center">
@@ -173,5 +213,30 @@ export function Onboarding({ onDone }: { onDone: () => void }): JSX.Element {
         </button>
       </div>
     </div>
+  )
+}
+
+function OnbField({
+  label,
+  placeholder,
+  value,
+  onChange
+}: {
+  label: string
+  placeholder: string
+  value: string
+  onChange: (v: string) => void
+}): JSX.Element {
+  return (
+    <label className="flex items-center gap-3">
+      <span className="w-20 shrink-0 text-sm text-gray-600">{label}</span>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        spellCheck={false}
+        className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+      />
+    </label>
   )
 }

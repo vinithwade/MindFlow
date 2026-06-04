@@ -3,6 +3,8 @@ import {
   House,
   Zap,
   CreditCard,
+  BookOpen,
+  Contact,
   SlidersHorizontal,
   Sparkles,
   ShieldCheck,
@@ -19,6 +21,8 @@ import { Onboarding } from './Onboarding'
 import { Home } from './Home'
 import { Usage } from './Usage'
 import { Billing } from './Billing'
+import { Dictionary } from './Dictionary'
+import { MyInfo } from './MyInfo'
 import { Login } from './Login'
 import { useAuth } from './auth'
 import { pushSettings, pushReply } from './sync'
@@ -29,6 +33,8 @@ type Section =
   | 'home'
   | 'usage'
   | 'billing'
+  | 'dictionary'
+  | 'myinfo'
   | 'general'
   | 'providers'
   | 'permissions'
@@ -41,6 +47,8 @@ const NAV_TOP: NavItem[] = [
   { id: 'home', label: 'Home', Icon: House },
   { id: 'usage', label: 'Usage', Icon: Zap },
   { id: 'billing', label: 'Plans', Icon: CreditCard },
+  { id: 'dictionary', label: 'Dictionary', Icon: BookOpen },
+  { id: 'myinfo', label: 'My Info', Icon: Contact },
   { id: 'general', label: 'General', Icon: SlidersHorizontal },
   { id: 'providers', label: 'Providers', Icon: Sparkles },
   { id: 'permissions', label: 'Permissions', Icon: ShieldCheck }
@@ -88,6 +96,15 @@ export function App(): JSX.Element {
       }
     })
   }, [auth.session, syncEnabled])
+
+  // Main may update settings on its own (e.g. auto-learned dictionary words);
+  // reflect them in the UI and sync to cloud.
+  useEffect(() => {
+    return window.api.onSettingsUpdated((next) => {
+      setSettings(next)
+      if (auth.session && next.syncEnabled) void pushSettings(next)
+    })
+  }, [auth.session])
 
   async function save(partial: Partial<AppSettings>): Promise<void> {
     const next = await window.api.setSettings(partial)
@@ -142,6 +159,8 @@ export function App(): JSX.Element {
         {section === 'home' && <Home hotkey={settings.hotkey} />}
         {section === 'usage' && <Usage onManage={() => setSection('billing')} />}
         {section === 'billing' && <Billing />}
+        {section === 'dictionary' && <Dictionary settings={settings} save={save} />}
+        {section === 'myinfo' && <MyInfo settings={settings} save={save} />}
         {section === 'general' && <General settings={settings} save={save} />}
         {section === 'providers' && <Providers settings={settings} save={save} />}
         {section === 'permissions' && <Permissions />}
