@@ -5,8 +5,9 @@ export interface STTProvider {
    * Transcribe an audio clip.
    * @param audio Raw audio bytes (WebM/Opus from the renderer's MediaRecorder).
    * @param mimeType e.g. "audio/webm".
+   * @param dictionary Personal-dictionary terms to bias spelling toward.
    */
-  transcribe(audio: Buffer, mimeType: string): Promise<string>
+  transcribe(audio: Buffer, mimeType: string, dictionary?: string[]): Promise<string>
 }
 
 export class STTError extends Error {

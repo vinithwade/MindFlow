@@ -1,4 +1,5 @@
 import { GenerateInput } from './types'
+import { infoForPrompt } from '../entityLogic'
 
 /**
  * The product's voice lives here. These instructions encode the four principles
@@ -24,7 +25,7 @@ Keep replies as short as the situation allows. Match the user's requested tone.`
 
 /** Builds the user-facing message; works even when no content was captured. */
 export function buildUserMessage(input: GenerateInput): string {
-  const { context, transcript, defaultTone } = input
+  const { context, transcript, defaultTone, dictionary, myInfo } = input
   const app = context.app || 'Unknown app'
   const content = context.content?.trim()
 
@@ -32,12 +33,21 @@ export function buildUserMessage(input: GenerateInput): string {
     ? `On-screen content (what they're replying to):\n"""\n${content}\n"""`
     : `No on-screen content was captured — compose from the spoken intent alone.`
 
+  // Personal dictionary: make sure custom names/terms are spelled exactly.
+  const dict = (dictionary ?? []).slice(-60)
+  const dictBlock = dict.length
+    ? `\n\nSpell these names/terms exactly if they appear: ${dict.join(', ')}.`
+    : ''
+
+  // Saved personal details the user may ask to include (e.g. "share my email").
+  const infoBlock = infoForPrompt(myInfo ?? [])
+
   return `App: ${app}
 ${contentBlock}
 
 The user said: "${transcript}"
 
-Requested tone: ${defaultTone}
+Requested tone: ${defaultTone}${dictBlock}${infoBlock}
 
 Write the reply now.`
 }
