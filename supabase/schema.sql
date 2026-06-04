@@ -154,3 +154,27 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
+
+-- ── waitlist (pre-launch landing page) ───────────────────────────────────────
+-- Anyone can JOIN (insert), but visitors cannot READ the list (no select policy),
+-- so emails stay private. A security-definer count function exposes only the
+-- total for social proof.
+create table if not exists public.waitlist (
+  id         uuid primary key default gen_random_uuid(),
+  email      text not null unique,
+  use_case   text,
+  referrer   text,
+  created_at timestamptz not null default now()
+);
+alter table public.waitlist enable row level security;
+
+drop policy if exists "waitlist: anyone can join" on public.waitlist;
+create policy "waitlist: anyone can join" on public.waitlist
+  for insert to anon, authenticated with check (true);
+
+-- Total signups only (no rows exposed) — for the "N on the waitlist" counter.
+create or replace function public.waitlist_count()
+returns int language sql security definer set search_path = public stable as $$
+  select count(*)::int from public.waitlist;
+$$;
+grant execute on function public.waitlist_count() to anon, authenticated;
