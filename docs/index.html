@@ -184,8 +184,42 @@
         100% { transform: scale(1); opacity: 1; }
       }
       .success-pop { animation: pop 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+      /* Infinite logo marquee — the track holds two copies of the list and
+         shifts left by exactly one copy, so the loop is seamless. */
+      .marquee {
+        overflow: hidden;
+        -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+        mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+      }
+      .marquee-track {
+        display: flex;
+        width: max-content;
+        animation: marquee 26s linear infinite;
+      }
+      .marquee:hover .marquee-track { animation-play-state: paused; }
+      .marquee-item {
+        white-space: nowrap;
+        padding: 0 2rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.5);
+        transition: color 0.25s ease;
+      }
+      .marquee-item:hover { color: rgba(255, 255, 255, 0.95); }
+      .marquee-dot {
+        align-self: center;
+        width: 3px;
+        height: 3px;
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.25);
+      }
+      @keyframes marquee {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+      }
       @media (prefers-reduced-motion: reduce) {
         .rise, .floaty, .sheen::after, .shiny, .success-pop { animation: none; }
+        .marquee-track { animation: none; flex-wrap: wrap; justify-content: center; }
       }
     </style>
   </head>
@@ -268,14 +302,29 @@
         <p class="text-center text-xs font-medium uppercase tracking-[0.2em] text-white/30">
           Works where you already type
         </p>
-        <div class="mt-5 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-white/55">
-          <span class="text-sm font-semibold">WhatsApp</span>
-          <span class="text-sm font-semibold">Slack</span>
-          <span class="text-sm font-semibold">Gmail</span>
-          <span class="text-sm font-semibold">X / Twitter</span>
-          <span class="text-sm font-semibold">iMessage</span>
-          <span class="text-sm font-semibold">LinkedIn</span>
-          <span class="text-sm font-semibold">Discord</span>
+        <div class="marquee mt-6">
+          <div class="marquee-track">
+            <!-- Copy 1 -->
+            <span class="marquee-item">WhatsApp</span><span class="marquee-dot"></span>
+            <span class="marquee-item">Slack</span><span class="marquee-dot"></span>
+            <span class="marquee-item">Gmail</span><span class="marquee-dot"></span>
+            <span class="marquee-item">X / Twitter</span><span class="marquee-dot"></span>
+            <span class="marquee-item">iMessage</span><span class="marquee-dot"></span>
+            <span class="marquee-item">LinkedIn</span><span class="marquee-dot"></span>
+            <span class="marquee-item">Discord</span><span class="marquee-dot"></span>
+            <span class="marquee-item">Notion</span><span class="marquee-dot"></span>
+            <span class="marquee-item">Telegram</span><span class="marquee-dot"></span>
+            <!-- Copy 2 (identical — makes the loop seamless) -->
+            <span class="marquee-item">WhatsApp</span><span class="marquee-dot"></span>
+            <span class="marquee-item">Slack</span><span class="marquee-dot"></span>
+            <span class="marquee-item">Gmail</span><span class="marquee-dot"></span>
+            <span class="marquee-item">X / Twitter</span><span class="marquee-dot"></span>
+            <span class="marquee-item">iMessage</span><span class="marquee-dot"></span>
+            <span class="marquee-item">LinkedIn</span><span class="marquee-dot"></span>
+            <span class="marquee-item">Discord</span><span class="marquee-dot"></span>
+            <span class="marquee-item">Notion</span><span class="marquee-dot"></span>
+            <span class="marquee-item">Telegram</span><span class="marquee-dot"></span>
+          </div>
         </div>
       </section>
 
