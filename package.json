@@ -55,6 +55,7 @@
     ],
     "mac": {
       "icon": "build/icon.icns",
+      "artifactName": "MindFlow-${arch}.${ext}",
       "target": [
         {
           "target": "dmg",
