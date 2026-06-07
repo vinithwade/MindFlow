@@ -141,8 +141,16 @@ if (!app.requestSingleInstanceLock()) {
 }
 app.on('second-instance', (_e, argv) => {
   const url = argv.find((a) => a.startsWith(`${PROTOCOL}://`))
-  if (url) sendAuthCallback(url)
-  else getMainWindow()?.show()
+  if (url) {
+    sendAuthCallback(url)
+    return
+  }
+  // Relaunching the app while it's already running (e.g. on Windows after
+  // closing the window — we keep running in the tray) must REOPEN the window,
+  // recreating it if the old one was closed/destroyed.
+  const mw = createMainWindow()
+  mw.show()
+  mw.focus()
 })
 
 function registerIpc(): void {

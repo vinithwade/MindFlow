@@ -34,3 +34,20 @@ export function createTray(): void {
     log.warn('[tray] could not create tray:', (e as Error).message)
   }
 }
+
+// Windows: closing the window keeps MindFlow alive in the tray (the hotkey
+// must keep working). Tell the user once so a "closed" app doesn't look stuck.
+let balloonShown = false
+export function notifyBackgroundOnce(): void {
+  if (balloonShown || !tray) return
+  balloonShown = true
+  try {
+    tray.displayBalloon({
+      title: 'MindFlow is still running',
+      content:
+        'Hold your shortcut to reply from any app. Click the tray icon to reopen the dashboard, or right-click it to quit.'
+    })
+  } catch {
+    /* balloons are Windows-only / best-effort */
+  }
+}

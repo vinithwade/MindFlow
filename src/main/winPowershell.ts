@@ -1,4 +1,4 @@
-import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
+import { spawn, execFile, ChildProcessWithoutNullStreams } from 'child_process'
 import { log } from './log'
 
 /**
@@ -55,6 +55,13 @@ interface Pending {
 }
 let pending: Pending | null = null
 
+/**
+ * Distinguishes "the host itself is broken" (timed out / died / unwritable)
+ * from an ordinary PowerShell command error. Host failures trigger the
+ * one-shot fallback; command errors propagate to the caller.
+ */
+class HostError extends Error {}
+
 function killHost(): void {
   if (proc) {
     try {
@@ -67,7 +74,7 @@ function killHost(): void {
   stdoutBuf = ''
   if (pending) {
     clearTimeout(pending.timer)
-    pending.reject(new Error('PowerShell host terminated.'))
+    pending.reject(new HostError('PowerShell host terminated.'))
     pending = null
   }
 }
@@ -134,7 +141,7 @@ function send(p: ChildProcessWithoutNullStreams, command: string, timeoutMs: num
       if (err && pending) {
         clearTimeout(pending.timer)
         pending = null
-        reject(err)
+        reject(new HostError(err.message))
       }
     })
   })
@@ -149,16 +156,56 @@ function enqueue(command: string, timeoutMs: number): Promise<string> {
   return run
 }
 
+/* ------------------------- One-shot fallback path -------------------------- */
+
+// If the warm host's stdin protocol misbehaves on some machine (every command
+// would time out), degrade permanently to one-shot powershell.exe processes:
+// slower (~0.5-1.5s, Add-Type recompiles each run) but always correct.
+let hostBroken = false
+const ONE_SHOT_PRELUDE = INIT_COMMANDS.join('; ')
+
+function runOneShot(command: string, timeoutMs: number): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    const script = `${ONE_SHOT_PRELUDE}; try { ${command} } catch { Write-Output ("${ERR_PREFIX}" + $_.Exception.Message) }`
+    execFile(
+      'powershell.exe',
+      ['-NoLogo', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', script],
+      // Generous extra headroom: Add-Type compiles C# on every invocation.
+      { timeout: timeoutMs + 10000, windowsHide: true, maxBuffer: 4 * 1024 * 1024 },
+      (err, stdout) => {
+        if (err) return reject(err)
+        const out = stdout.replace(/\r/g, '').trim()
+        if (out.startsWith(ERR_PREFIX)) reject(new Error(out.slice(ERR_PREFIX.length).trim()))
+        else resolve(out)
+      }
+    )
+  })
+}
+
 /**
- * Run a single-line PowerShell statement on the warm host and return its
- * stdout (trimmed). Statements must be one line — join with `;`.
- * Throws on PowerShell errors, timeout, or host death.
+ * Run a single-line PowerShell statement and return its stdout (trimmed).
+ * Statements must be one line — join with `;`. Uses the warm host; if the host
+ * proves broken (timeout/death), falls back to one-shot processes from then on.
+ * Throws on PowerShell command errors.
  */
-export function runPs(command: string, timeoutMs: number = DEFAULT_TIMEOUT_MS): Promise<string> {
+export async function runPs(
+  command: string,
+  timeoutMs: number = DEFAULT_TIMEOUT_MS
+): Promise<string> {
   if (process.platform !== 'win32') {
-    return Promise.reject(new Error('PowerShell host is Windows-only.'))
+    throw new Error('PowerShell host is Windows-only.')
   }
-  return enqueue(command, timeoutMs)
+  if (!hostBroken) {
+    try {
+      return await enqueue(command, timeoutMs)
+    } catch (err) {
+      if (!(err instanceof HostError)) throw err // real command error — propagate
+      log.warn('[ps] warm host unusable — switching to one-shot mode:', err.message)
+      hostBroken = true
+      killHost()
+    }
+  }
+  return runOneShot(command, timeoutMs)
 }
 
 /** Spawn + warm the host ahead of time (e.g. at app start) so first use is fast. */
