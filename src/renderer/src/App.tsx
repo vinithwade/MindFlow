@@ -28,6 +28,7 @@ import { useAuth } from './auth'
 import { pushSettings, pushReply } from './sync'
 import { fetchCredits, spendCredits } from './credits'
 import { PRIVACY_URL, TERMS_URL } from './legal'
+import { IS_MAC } from './platform'
 
 type Section =
   | 'home'
@@ -219,7 +220,7 @@ function General({
         <div className="space-y-5">
           <Field
             label="Push-to-talk shortcut"
-            hint="Click Record, then press the key(s) you want — a single key like Fn, or a combo. Hold it, speak, release. Default is Fn."
+            hint={`Click Record, then press the key(s) you want — a single key or a combo. Hold it, speak, release. Default is ${IS_MAC ? 'Fn' : 'Right Ctrl'}.`}
           >
             <ShortcutRecorder value={settings.hotkey} onChange={(hk) => save({ hotkey: hk })} />
           </Field>
@@ -365,7 +366,14 @@ function Providers({
 function Permissions(): JSX.Element {
   return (
     <div className="max-w-lg">
-      <Header title="Permissions" sub="macOS access the app needs to work everywhere." />
+      <Header
+        title="Permissions"
+        sub={
+          IS_MAC
+            ? 'macOS access the app needs to work everywhere.'
+            : 'System access the app needs to work everywhere.'
+        }
+      />
       <PermissionsPanel />
     </div>
   )
@@ -521,7 +529,7 @@ function About(): JSX.Element {
             Terms of Service
           </button>
         </div>
-        <p className="mt-3 text-xs text-gray-400">Version 0.1.0 · macOS</p>
+        <p className="mt-3 text-xs text-gray-400">Version 0.1.0 · {IS_MAC ? 'macOS' : 'Windows'}</p>
       </Card>
     </div>
   )

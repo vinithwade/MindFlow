@@ -1,7 +1,7 @@
 import { tmpdir } from 'os'
 import { join } from 'path'
 import { unlink } from 'fs/promises'
-import { screenshotToFile } from './macos'
+import { screenshotToFile } from './platform'
 
 /**
  * OCR fallback (last resort): screenshot the active display and run Tesseract.

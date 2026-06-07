@@ -1,6 +1,7 @@
 import { execFile } from 'child_process'
 import { promisify } from 'util'
 import { clipboard } from 'electron'
+import { SOURCE_DENYLIST, friendlyAppName } from './appName'
 
 const execFileAsync = promisify(execFile)
 
@@ -13,21 +14,6 @@ async function osascript(script: string): Promise<string> {
   })
   return stdout.trim()
 }
-
-/**
- * Processes that must never be recorded as the "source app" to paste into:
- * MindFlow itself (Electron in dev), and macOS's transient screenshot tools.
- * If one of these is frontmost when the user triggers, we fall back to the
- * last real app instead of re-activating it on insert (which would flash a
- * screenshot/Finder window forward instead of the page they're replying to).
- */
-const SOURCE_DENYLIST = new Set([
-  'Electron', // us, in dev
-  'MindFlow', // us, packaged
-  'screencaptureui', // Cmd-Shift-4/5 interactive screenshot UI
-  'Screenshot', // Screenshot.app
-  'Screencapture'
-])
 
 type FrontApp = { app: string; process: string; title: string }
 const EMPTY_FRONT: FrontApp = { app: '', process: '', title: '' }
@@ -144,21 +130,3 @@ export async function screenshotToFile(path: string): Promise<boolean> {
   }
 }
 
-/** Map raw process names to friendlier surface names; sniff browser tabs by title. */
-function friendlyAppName(app: string, title: string): string {
-  const t = title.toLowerCase()
-  const browsers = ['Google Chrome', 'Safari', 'Arc', 'Brave Browser', 'Microsoft Edge', 'Firefox']
-  if (browsers.includes(app)) {
-    if (t.includes('twitter') || t.includes('/ x') || t.endsWith(' / x')) return 'Twitter/X'
-    if (t.includes('linkedin')) return 'LinkedIn'
-    if (t.includes('gmail') || t.includes('mail')) return 'Email'
-    if (t.includes('discord')) return 'Discord'
-    if (t.includes('whatsapp')) return 'WhatsApp'
-    if (t.includes('slack')) return 'Slack'
-  }
-  const map: Record<string, string> = {
-    Mail: 'Email',
-    'Microsoft Outlook': 'Email'
-  }
-  return map[app] ?? app
-}

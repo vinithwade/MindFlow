@@ -51,6 +51,19 @@ function macServerPath(): string | undefined {
   )
 }
 
+/** Same for WinKeyServer.exe: packaged builds must run the asar-unpacked copy. */
+function winServerPath(): string | undefined {
+  if (process.platform !== 'win32' || !app.isPackaged) return undefined
+  return join(
+    process.resourcesPath,
+    'app.asar.unpacked',
+    'node_modules',
+    'node-global-key-listener',
+    'bin',
+    'WinKeyServer.exe'
+  )
+}
+
 /** The bundled MacKeyServer ships without the execute bit — set it before use. */
 function ensureExecutable(): void {
   try {
@@ -73,11 +86,15 @@ async function ensureListener(): Promise<void> {
   if (starting) return starting
   starting = (async () => {
     ensureExecutable()
-    const serverPath = macServerPath()
+    const macPath = macServerPath()
+    const winPath = winServerPath()
+    const onError = (c: number | null | undefined): void => log.warn('[hotkey] keyserver error', c)
     const l = new GlobalKeyboardListener(
-      serverPath
-        ? { mac: { serverPath, onError: (c) => log.warn('[hotkey] keyserver error', c) } }
-        : {}
+      macPath
+        ? { mac: { serverPath: macPath, onError } }
+        : winPath
+          ? { windows: { serverPath: winPath, onError } }
+          : {}
     )
     await l.addListener(handleEvent)
     listener = l
@@ -131,7 +148,14 @@ function handleEvent(e: IGlobalKeyEvent): boolean | void {
   // OS default for it — so pressing Fn opens OUR overlay, not the macOS emoji
   // picker / dictation. Only for single suppressible keys, never for modifiers
   // or letters, so normal typing and ⌘-shortcuts are untouched.
-  if (requiredKeys.length === 1 && requiredKeys[0] === name && isSuppressible(name)) {
+  // macOS-only: WinKeyServer's suppression is unreliable, and the Windows
+  // default key (Right Ctrl) isn't suppressible anyway.
+  if (
+    process.platform === 'darwin' &&
+    requiredKeys.length === 1 &&
+    requiredKeys[0] === name &&
+    isSuppressible(name)
+  ) {
     return true
   }
 }

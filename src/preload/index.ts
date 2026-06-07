@@ -17,6 +17,9 @@ import {
  * contextBridge. The renderer never touches ipcRenderer directly.
  */
 const api = {
+  /** OS the app is running on — lets the renderer adapt labels/permission UI. */
+  platform: process.platform as string,
+
   getSettings: (): Promise<AppSettings> => ipcRenderer.invoke(IPC.GET_SETTINGS),
   setSettings: (partial: Partial<AppSettings>): Promise<AppSettings> =>
     ipcRenderer.invoke(IPC.SET_SETTINGS, partial),

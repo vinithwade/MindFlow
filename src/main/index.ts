@@ -16,6 +16,7 @@ import { validateApiKey } from './validateKey'
 import { getDashboard, getUsage, mergeReplies, clearHistory } from './history'
 import { ReplyHistoryItem } from '../shared/types'
 import { registerHotkey, unregisterHotkey, captureHotkey, cancelHotkeyCapture } from './hotkey'
+import { warmPsHost, disposePsHost } from './winPowershell'
 import { initAutoUpdater } from './updater'
 import { initSentry } from './sentry'
 import { createTray } from './tray'
@@ -249,6 +250,10 @@ app.whenReady().then(() => {
   applyLoginItem(initial.launchAtLogin)
   void registerHotkey(initial.hotkey)
 
+  // Windows: spawn + warm the PowerShell automation host so the first
+  // context-capture/paste doesn't pay the cold-start cost. No-op on macOS.
+  warmPsHost()
+
   // Warm up the overlay so the first invocation is instant.
   getOverlayWindow()
   createMainWindow()
@@ -270,6 +275,7 @@ app.whenReady().then(() => {
 
 app.on('will-quit', () => {
   unregisterHotkey()
+  disposePsHost()
 })
 
 app.on('window-all-closed', () => {
