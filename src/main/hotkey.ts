@@ -88,7 +88,13 @@ async function ensureListener(): Promise<void> {
     ensureExecutable()
     const macPath = macServerPath()
     const winPath = winServerPath()
-    const onError = (c: number | null | undefined): void => log.warn('[hotkey] keyserver error', c)
+    // The key-server process can die mid-session (crash, killed by antivirus).
+    // Its onError fires on close — recover by respawning instead of leaving the
+    // hotkey dead until app restart.
+    const onError = (c: number | null | undefined): void => {
+      log.warn('[hotkey] keyserver error/closed', c)
+      scheduleListenerRestart()
+    }
     const l = new GlobalKeyboardListener(
       macPath
         ? { mac: { serverPath: macPath, onError } }
@@ -109,9 +115,37 @@ async function ensureListener(): Promise<void> {
   }
 }
 
+// Respawn the key server after it dies (unless we killed it on purpose).
+let restartTimer: ReturnType<typeof setTimeout> | null = null
+let stopping = false
+
+function scheduleListenerRestart(): void {
+  if (stopping || restartTimer) return
+  if (listener) {
+    try {
+      listener.kill()
+    } catch {
+      /* already dead */
+    }
+    listener = null
+  }
+  restartTimer = setTimeout(() => {
+    restartTimer = null
+    void ensureListener().then(() => {
+      if (listener) log.info('[hotkey] key listener restarted after failure')
+    })
+  }, 1000)
+}
+
 function handleEvent(e: IGlobalKeyEvent): boolean | void {
   const name = e.name as string | undefined
   if (!name) return
+
+  // The OS hook reports mouse buttons too ("MOUSE LEFT", "MOUSE RIGHT", …).
+  // Ignore them entirely: a click must never become part of a shortcut or end a
+  // capture early, and returning true for one during capture would suppress the
+  // user's clicks system-wide (this froze/derailed recording on Windows).
+  if (name.startsWith('MOUSE')) return
 
   if (capturing) return handleCapture(e, name)
 
@@ -165,12 +199,18 @@ function handleEvent(e: IGlobalKeyEvent): boolean | void {
 export async function registerHotkey(hotkey: Hotkey): Promise<void> {
   requiredKeys = hotkey.keys
   engaged = false
+  stopping = false
   downNow.clear()
   await ensureListener()
   log.info(`[hotkey] push-to-talk = ${hotkey.label} [${hotkey.keys.join(', ')}]`)
 }
 
 export function unregisterHotkey(): void {
+  stopping = true // intentional shutdown — don't auto-respawn the key server
+  if (restartTimer) {
+    clearTimeout(restartTimer)
+    restartTimer = null
+  }
   requiredKeys = []
   engaged = false
   downNow.clear()
