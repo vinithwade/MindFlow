@@ -27,10 +27,13 @@ export function ShortcutRecorder({
       if (hk) {
         onChange(hk)
       } else if (!cancelled.current) {
-        // Null without a cancel = nothing was captured (timed out, or the key
-        // listener isn't running — e.g. blocked by antivirus on Windows).
+        // Null without a cancel = nothing was captured. Distinguish the two cases:
+        // the key listener never started (blocked) vs it ran but timed out.
+        const { listenerReady } = await window.api.getHotkeyStatus()
         setError(
-          "No keys detected. Press and release the keys while recording. If this keeps happening, restart MindFlow — your antivirus may be blocking its key listener."
+          listenerReady
+            ? 'No keys detected. Press and hold the key(s), then release while recording.'
+            : "MindFlow's key listener isn't running — your antivirus or Windows Defender most likely blocked it. Allow MindFlow (and WinKeyServer.exe) in your security software, then restart MindFlow."
         )
       }
     } finally {

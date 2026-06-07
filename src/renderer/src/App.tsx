@@ -529,7 +529,7 @@ function About(): JSX.Element {
             Terms of Service
           </button>
         </div>
-        <p className="mt-3 text-xs text-gray-400">Version 0.1.2 · {IS_MAC ? 'macOS' : 'Windows'}</p>
+        <p className="mt-3 text-xs text-gray-400">Version 0.1.3 · {IS_MAC ? 'macOS' : 'Windows'}</p>
       </Card>
     </div>
   )

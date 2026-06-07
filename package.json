@@ -1,6 +1,6 @@
 {
   "name": "mindflow",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Context-Aware MindFlow — voice intent + screen context → polished replies",
   "main": "./out/main/index.js",
   "author": "MindFlow",

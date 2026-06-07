@@ -15,7 +15,13 @@ import { log } from './log'
 import { validateApiKey } from './validateKey'
 import { getDashboard, getUsage, mergeReplies, clearHistory } from './history'
 import { ReplyHistoryItem } from '../shared/types'
-import { registerHotkey, unregisterHotkey, captureHotkey, cancelHotkeyCapture } from './hotkey'
+import {
+  registerHotkey,
+  unregisterHotkey,
+  captureHotkey,
+  cancelHotkeyCapture,
+  isHotkeyListenerReady
+} from './hotkey'
 import { warmPsHost, disposePsHost } from './winPowershell'
 import { initAutoUpdater } from './updater'
 import { initSentry } from './sentry'
@@ -177,6 +183,7 @@ function registerIpc(): void {
     return hk
   })
   ipcMain.handle(IPC.CANCEL_HOTKEY_CAPTURE, () => cancelHotkeyCapture())
+  ipcMain.handle(IPC.GET_HOTKEY_STATUS, () => ({ listenerReady: isHotkeyListenerReady() }))
 
   // Renderer reports its measured content height → size the overlay to fit.
   ipcMain.on(IPC.RESIZE_OVERLAY, (_evt, height: number) => resizeOverlay(height))

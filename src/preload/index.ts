@@ -72,6 +72,8 @@ const api = {
   startHotkeyCapture: (): Promise<Hotkey | null> =>
     ipcRenderer.invoke(IPC.START_HOTKEY_CAPTURE),
   cancelHotkeyCapture: (): Promise<void> => ipcRenderer.invoke(IPC.CANCEL_HOTKEY_CAPTURE),
+  getHotkeyStatus: (): Promise<{ listenerReady: boolean }> =>
+    ipcRenderer.invoke(IPC.GET_HOTKEY_STATUS),
 
   // Overlay actions
   dismissOverlay: (): Promise<void> => ipcRenderer.invoke(IPC.OVERLAY_DISMISS),

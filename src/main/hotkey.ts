@@ -1,4 +1,4 @@
-import { chmodSync } from 'fs'
+import { chmodSync, existsSync } from 'fs'
 import { dirname, join } from 'path'
 import { app } from 'electron'
 import { GlobalKeyboardListener, IGlobalKeyEvent } from 'node-global-key-listener'
@@ -16,6 +16,17 @@ import { labelFor, orderKeys, isSuppressible } from './hotkeyKeys'
 
 let listener: GlobalKeyboardListener | null = null
 let starting: Promise<void> | null = null
+/**
+ * Whether the global key listener is actually running. False means neither
+ * push-to-talk nor shortcut recording can work — usually because antivirus /
+ * Windows Defender blocked the unsigned key-server helper. The renderer reads
+ * this to show a precise message instead of a vague "no key detected" timeout.
+ */
+let listenerReady = false
+
+export function isHotkeyListenerReady(): boolean {
+  return listenerReady
+}
 
 // Hold detection
 let requiredKeys: string[] = []
@@ -88,11 +99,19 @@ async function ensureListener(): Promise<void> {
     ensureExecutable()
     const macPath = macServerPath()
     const winPath = winServerPath()
+    // Log the resolved key-server path + whether it exists on disk. On Windows a
+    // missing/blocked WinKeyServer.exe is the #1 cause of a dead hotkey, so this
+    // line in main.log immediately tells us "antivirus removed it" vs other.
+    const serverPath = macPath ?? winPath
+    if (serverPath) {
+      log.warn(`[hotkey] key-server: ${serverPath} exists=${existsSync(serverPath)}`)
+    }
     // The key-server process can die mid-session (crash, killed by antivirus).
     // Its onError fires on close — recover by respawning instead of leaving the
     // hotkey dead until app restart.
     const onError = (c: number | null | undefined): void => {
       log.warn('[hotkey] keyserver error/closed', c)
+      listenerReady = false
       scheduleListenerRestart()
     }
     const l = new GlobalKeyboardListener(
@@ -104,12 +123,14 @@ async function ensureListener(): Promise<void> {
     )
     await l.addListener(handleEvent)
     listener = l
+    listenerReady = true
   })()
   try {
     await starting
   } catch (err) {
     log.warn('[hotkey] global key listener failed to start:', (err as Error).message)
     listener = null
+    listenerReady = false
   } finally {
     starting = null
   }

@@ -202,6 +202,7 @@ export const IPC = {
   OPEN_MAIN: 'window:open-main',
   START_HOTKEY_CAPTURE: 'hotkey:capture',
   CANCEL_HOTKEY_CAPTURE: 'hotkey:capture-cancel',
+  GET_HOTKEY_STATUS: 'hotkey:status',
   RESIZE_OVERLAY: 'overlay:resize',
   GET_DASHBOARD: 'dashboard:get',
   GET_USAGE: 'usage:get',
