@@ -7,7 +7,10 @@
 export interface ScreenContext {
   /** Active application name, e.g. "Twitter", "Slack". */
   app: string
-  /** Raw macOS process name of the front app — used to re-focus it on insert. */
+  /**
+   * Token used to re-focus the front app on insert: the raw process name on
+   * macOS, "<pid>|<processName>" on Windows.
+   */
   appProcess: string
   /** Extracted visible/selected content the user is replying to. */
   content: string

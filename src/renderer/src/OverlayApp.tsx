@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ReplySession } from '@shared/types'
 import { useRecorder } from './useRecorder'
 import { Waveform } from './Waveform'
+import { REGEN_KEY_LABEL } from './platform'
 
 /**
  * Floating overlay. A slim vertical "pill" while capturing (mic-reactive
@@ -193,7 +194,7 @@ function CardView({
               Send <Kbd inline>⏎</Kbd>
             </button>
             <ActionButton onClick={() => void window.api.regenerate()}>
-              Regenerate <Kbd inline>⌘R</Kbd>
+              Regenerate <Kbd inline>{REGEN_KEY_LABEL}</Kbd>
             </ActionButton>
             <ActionButton onClick={() => void navigator.clipboard.writeText(draft)}>
               Copy

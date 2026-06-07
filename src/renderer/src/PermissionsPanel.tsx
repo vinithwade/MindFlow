@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { PermissionKind, PermissionStatus } from '@shared/types'
+import { IS_MAC } from './platform'
 
-const ITEMS: {
+const ALL_ITEMS: {
   kind: PermissionKind
   title: string
   desc: string
@@ -16,6 +17,10 @@ const ITEMS: {
   },
   { kind: 'screen', title: 'Screen Recording', desc: 'OCR fallback (optional).', required: false }
 ]
+
+// Accessibility / Screen Recording are macOS privacy gates; Windows has no
+// equivalent grants (main reports them as granted), so only show Microphone.
+const ITEMS = IS_MAC ? ALL_ITEMS : ALL_ITEMS.filter((i) => i.kind === 'microphone')
 
 /**
  * Live permissions status. Polls every 2s because macOS grants happen in System

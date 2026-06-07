@@ -1,4 +1,4 @@
-import { BrowserWindow, screen, shell } from 'electron'
+import { app, BrowserWindow, screen, shell } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 
@@ -175,6 +175,17 @@ export function resizeOverlay(height: number): void {
 
 export function hideOverlay(): void {
   if (overlayWindow && !overlayWindow.isDestroyed()) overlayWindow.hide()
+}
+
+/**
+ * Give focus back to whatever the user was doing. On macOS `app.hide()` hides
+ * ALL of MindFlow and yields focus toward the prior app. Windows has no app-
+ * level hide; hiding the overlay is enough — the follow-up activateProcess()
+ * call is what actually re-focuses the source app there.
+ */
+export function relinquishFocus(): void {
+  hideOverlay()
+  if (process.platform === 'darwin') app.hide()
 }
 
 export function getMainWindow(): BrowserWindow | null {

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { AppSettings, MyInfoKind } from '@shared/types'
 import { Segmented, KeyInput } from './ui'
 import { PermissionsPanel } from './PermissionsPanel'
+import { IS_MAC } from './platform'
 import logo from './assets/logo.png'
 
 function uid(): string {
@@ -114,8 +115,9 @@ export function Onboarding({ onDone }: { onDone: () => void }): JSX.Element {
       body: (
         <div className="space-y-4">
           <p className="text-sm text-gray-500">
-            The app works system-wide, so macOS needs a few permissions. You can finish setup and
-            grant these anytime.
+            {IS_MAC
+              ? 'The app works system-wide, so macOS needs a few permissions. You can finish setup and grant these anytime.'
+              : 'The app just needs your microphone — Windows will ask the first time you record.'}
           </p>
           <PermissionsPanel />
         </div>

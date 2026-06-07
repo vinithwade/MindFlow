@@ -1,5 +1,5 @@
 import { ScreenContext } from '../../shared/types'
-import { getFrontApp, getSelectedText, getAccessibilityText } from './macos'
+import { getFrontApp, getSelectedText, getAccessibilityText } from './platform'
 import { ocrActiveScreen } from './ocr'
 
 /** Cap captured content so we don't blow up the LLM prompt with a whole screen. */
@@ -13,7 +13,7 @@ const MAX_CONTENT = 4000
  * OCR is OFF by default: it screenshots the screen (which pops the macOS
  * screenshot thumbnail and needs Screen Recording permission), so it's opt-in.
  *
- * macOS-first (V1). Windows parity (UI Automation) lands in M6.
+ * macOS: AppleScript + AX. Windows: PowerShell + UI Automation (./windows.ts).
  */
 export async function captureContext(opts: { enableOcr?: boolean } = {}): Promise<ScreenContext> {
   const empty: ScreenContext = {
@@ -23,7 +23,7 @@ export async function captureContext(opts: { enableOcr?: boolean } = {}): Promis
     source: 'none',
     hadSelection: false
   }
-  if (process.platform !== 'darwin') return empty
+  if (process.platform !== 'darwin' && process.platform !== 'win32') return empty
 
   // App detection runs in parallel with the selection probe.
   const [front, selected] = await Promise.all([getFrontApp(), getSelectedText()])

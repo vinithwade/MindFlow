@@ -2,8 +2,8 @@ import { IPC, ReplySession, ScreenContext, ReplyTier, CREDIT_COST, AppSettings }
 import {
   getOverlayWindow,
   showOverlayNearCursor,
-  hideOverlay,
   setOverlayMode,
+  relinquishFocus,
   getMainWindow,
   createMainWindow
 } from './windows'
@@ -12,11 +12,10 @@ import { extractCandidates, mergeDict } from './dictionaryLogic'
 import { detectEntities, newEntities } from './entityLogic'
 import { createSTTProvider, assertSTTConfigured } from './stt'
 import { captureContext } from './context'
-import { app } from 'electron'
 import { randomUUID } from 'crypto'
 import { createLLMProvider, assertLLMConfigured } from './llm'
 import { insertText } from './insert'
-import { activateProcess } from './context/macos'
+import { activateProcess } from './context/platform'
 import { recordReply } from './history'
 
 /**
@@ -244,8 +243,7 @@ export function dismissSession(): void {
   current = null
   // Hide the whole app (overlay + dashboard) so our Settings window doesn't pop
   // forward when the overlay closes, then pin focus back to the source app.
-  hideOverlay()
-  app.hide()
+  relinquishFocus()
   if (proc) void activateProcess(proc).catch(() => undefined)
 }
 
