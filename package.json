@@ -17,7 +17,10 @@
     "test": "vitest run",
     "package:dir": "electron-vite build && electron-builder --mac dir --arm64",
     "package": "electron-vite build && electron-builder --mac dmg --arm64",
-    "release": "electron-vite build && electron-builder --mac --arm64 --publish always"
+    "package:win": "electron-vite build && electron-builder --win nsis --x64",
+    "package:win:dir": "electron-vite build && electron-builder --win dir --x64",
+    "release": "electron-vite build && electron-builder --mac --arm64 --publish always",
+    "release:win": "electron-vite build && electron-builder --win --x64 --publish always"
   },
   "build": {
     "appId": "com.mindflow.app",
@@ -79,6 +82,25 @@
     },
     "dmg": {
       "title": "MindFlow"
+    },
+    "win": {
+      "icon": "build/icon.ico",
+      "artifactName": "MindFlow-${arch}-Setup.${ext}",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": "x64"
+        },
+        {
+          "target": "zip",
+          "arch": "x64"
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
     }
   },
   "dependencies": {

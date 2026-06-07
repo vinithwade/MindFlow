@@ -19,6 +19,16 @@ const SYMBOLS: Record<string, string> = {
   'RIGHT SHIFT': '⇧'
 }
 
+// Windows users expect words, not mac glyphs. Everything else falls back to
+// titleCase ("Right Ctrl", "Left Shift"), which keeps left/right distinct —
+// the listener matches exact key names, so the label should too.
+const WIN_SYMBOLS: Record<string, string> = {
+  RETURN: 'Enter',
+  TAB: 'Tab',
+  'LEFT META': 'Win',
+  'RIGHT META': 'Win'
+}
+
 // Modifiers/Fn read first, like a normal shortcut.
 const PRIORITY = [
   'FN',
@@ -49,9 +59,10 @@ function titleCase(k: string): string {
     .join(' ')
 }
 
-export function labelFor(keys: string[]): string {
+export function labelFor(keys: string[], platform: string = process.platform): string {
+  const symbols = platform === 'win32' ? WIN_SYMBOLS : SYMBOLS
   return orderKeys(keys)
-    .map((k) => SYMBOLS[k] ?? titleCase(k))
+    .map((k) => symbols[k] ?? titleCase(k))
     .join(' + ')
 }
 

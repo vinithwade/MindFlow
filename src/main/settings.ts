@@ -10,9 +10,20 @@ import { AppSettings, DEFAULT_SETTINGS } from '../shared/types'
  * the app; setSettings() encrypts before writing. Legacy plaintext keys are
  * migrated transparently on the next save.
  */
+
+/**
+ * Platform defaults: Fn is a hardware key on most Windows laptops and never
+ * reaches low-level keyboard hooks, so Windows defaults to Right Ctrl instead.
+ * Computed here (main process) so shared types.ts stays platform-free.
+ */
+const PLATFORM_DEFAULTS: AppSettings =
+  process.platform === 'win32'
+    ? { ...DEFAULT_SETTINGS, hotkey: { keys: ['RIGHT CTRL'], label: 'Right Ctrl' } }
+    : DEFAULT_SETTINGS
+
 const store = new Store<AppSettings>({
   name: 'settings',
-  defaults: DEFAULT_SETTINGS
+  defaults: PLATFORM_DEFAULTS
 })
 
 const ENC_PREFIX = 'enc:'
@@ -46,10 +57,10 @@ function mapKeys(
 
 export function getSettings(): AppSettings {
   // Merge to guard against older configs missing newly-added keys.
-  const merged = { ...DEFAULT_SETTINGS, ...store.store }
-  // Migration: hotkey was once an Electron accelerator string → default to Fn.
+  const merged = { ...PLATFORM_DEFAULTS, ...store.store }
+  // Migration: hotkey was once an Electron accelerator string → platform default.
   if (typeof (merged.hotkey as unknown) === 'string') {
-    merged.hotkey = DEFAULT_SETTINGS.hotkey
+    merged.hotkey = PLATFORM_DEFAULTS.hotkey
   }
   merged.apiKeys = mapKeys(merged.apiKeys ?? {}, decryptKey)
   return merged

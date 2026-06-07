@@ -82,7 +82,10 @@ export function getOverlayWindow(): BrowserWindow {
     // float over ANOTHER app's full-screen Space no matter what flags are set —
     // only a panel can join full-screen Spaces. This is what lets the overlay
     // appear over full-screen WhatsApp/Safari/etc.
-    type: 'panel',
+    // On Windows 'panel' is invalid — a normal frameless window + alwaysOnTop
+    // floats over everything except exclusive-fullscreen apps (e.g. games);
+    // borderless-fullscreen is fine. Accepted V1 limitation.
+    ...(process.platform === 'darwin' ? { type: 'panel' as const } : {}),
     // Programmatic resize (pill <-> card) needs resizable; frameless hides handles.
     resizable: true,
     movable: true,
@@ -100,10 +103,12 @@ export function getOverlayWindow(): BrowserWindow {
   // until the user interacts with it. skipTransformProcessType avoids the Dock
   // flicker that setVisibleOnAllWorkspaces otherwise causes.
   overlayWindow.setAlwaysOnTop(true, 'screen-saver')
-  overlayWindow.setVisibleOnAllWorkspaces(true, {
-    visibleOnFullScreen: true,
-    skipTransformProcessType: true
-  })
+  if (process.platform === 'darwin') {
+    overlayWindow.setVisibleOnAllWorkspaces(true, {
+      visibleOnFullScreen: true,
+      skipTransformProcessType: true
+    })
+  }
 
   loadEntry(overlayWindow, 'overlay.html')
   return overlayWindow
@@ -139,10 +144,12 @@ export function showOverlayNearCursor(): void {
   // after each insert). Without re-applying, the overlay won't appear over a
   // full-screen app (e.g. WhatsApp full-screen) — only on the regular desktop.
   win.setAlwaysOnTop(true, 'screen-saver')
-  win.setVisibleOnAllWorkspaces(true, {
-    visibleOnFullScreen: true,
-    skipTransformProcessType: true
-  })
+  if (process.platform === 'darwin') {
+    win.setVisibleOnAllWorkspaces(true, {
+      visibleOnFullScreen: true,
+      skipTransformProcessType: true
+    })
+  }
   // showInactive (not show/focus) so we never switch the user's Space or steal
   // focus from the app they're replying to.
   win.showInactive()
