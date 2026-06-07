@@ -13,12 +13,12 @@ import { AppSettings, DEFAULT_SETTINGS } from '../shared/types'
 
 /**
  * Platform defaults: Fn is a hardware key on most Windows laptops and never
- * reaches low-level keyboard hooks, so Windows defaults to Right Ctrl instead.
+ * reaches low-level keyboard hooks, so Windows defaults to Right Alt instead.
  * Computed here (main process) so shared types.ts stays platform-free.
  */
 const PLATFORM_DEFAULTS: AppSettings =
   process.platform === 'win32'
-    ? { ...DEFAULT_SETTINGS, hotkey: { keys: ['RIGHT CTRL'], label: 'Right Ctrl' } }
+    ? { ...DEFAULT_SETTINGS, hotkey: { keys: ['RIGHT ALT'], label: 'Right Alt' } }
     : DEFAULT_SETTINGS
 
 const store = new Store<AppSettings>({

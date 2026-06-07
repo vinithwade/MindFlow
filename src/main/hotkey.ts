@@ -149,7 +149,7 @@ function handleEvent(e: IGlobalKeyEvent): boolean | void {
   // picker / dictation. Only for single suppressible keys, never for modifiers
   // or letters, so normal typing and ⌘-shortcuts are untouched.
   // macOS-only: WinKeyServer's suppression is unreliable, and the Windows
-  // default key (Right Ctrl) isn't suppressible anyway.
+  // default key (Right Alt) isn't suppressible anyway.
   if (
     process.platform === 'darwin' &&
     requiredKeys.length === 1 &&

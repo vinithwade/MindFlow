@@ -220,7 +220,7 @@ function General({
         <div className="space-y-5">
           <Field
             label="Push-to-talk shortcut"
-            hint={`Click Record, then press the key(s) you want — a single key or a combo. Hold it, speak, release. Default is ${IS_MAC ? 'Fn' : 'Right Ctrl'}.`}
+            hint={`Click Record, then press the key(s) you want — a single key or a combo. Hold it, speak, release. Default is ${IS_MAC ? 'Fn' : 'Right Alt'}.`}
           >
             <ShortcutRecorder value={settings.hotkey} onChange={(hk) => save({ hotkey: hk })} />
           </Field>
