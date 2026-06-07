@@ -12,11 +12,17 @@ describe('orderKeys', () => {
   })
 })
 
+// labelFor is platform-aware (mac glyphs vs Windows words) — always pin the
+// platform in tests so they pass on any CI runner.
 describe('labelFor', () => {
-  it('labels Fn as "Fn"', () => expect(labelFor(['FN'])).toBe('Fn'))
-  it('labels a combo with symbols, modifier first', () =>
-    expect(labelFor(['SPACE', 'LEFT META'])).toBe('⌘ + Space'))
-  it('uppercases a single letter', () => expect(labelFor(['a'])).toBe('A'))
+  it('labels Fn as "Fn"', () => expect(labelFor(['FN'], 'darwin')).toBe('Fn'))
+  it('labels a mac combo with glyphs, modifier first', () =>
+    expect(labelFor(['SPACE', 'LEFT META'], 'darwin')).toBe('⌘ + Space'))
+  it('labels a Windows combo with words, modifier first', () =>
+    expect(labelFor(['SPACE', 'LEFT META'], 'win32')).toBe('Win + Space'))
+  it('keeps left/right distinct on Windows', () =>
+    expect(labelFor(['RIGHT ALT'], 'win32')).toBe('Right Alt'))
+  it('uppercases a single letter', () => expect(labelFor(['a'], 'darwin')).toBe('A'))
 })
 
 describe('isSuppressible', () => {

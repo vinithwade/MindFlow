@@ -1,6 +1,7 @@
 import { app, BrowserWindow, screen, shell } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
+import { notifyBackgroundOnce } from './tray'
 
 /**
  * Window manager: one ordinary Settings/main window and one frameless,
@@ -60,6 +61,18 @@ export function createMainWindow(): BrowserWindow {
   })
 
   mainWindow.on('ready-to-show', () => mainWindow?.show())
+  // Drop the reference once destroyed, so every getMainWindow() caller
+  // recreates instead of calling into a dead object (threw "Object has been
+  // destroyed" — on Windows this made the app impossible to reopen after
+  // closing the window, and broke reply recording until restart).
+  mainWindow.on('closed', () => {
+    mainWindow = null
+  })
+  // The app keeps running in the tray after the window closes (the global
+  // hotkey must stay alive). On Windows that's not obvious — tell the user once.
+  mainWindow.on('close', () => {
+    if (process.platform === 'win32') notifyBackgroundOnce()
+  })
   mainWindow.webContents.setWindowOpenHandler((details) => {
     void shell.openExternal(details.url)
     return { action: 'deny' }
@@ -188,6 +201,7 @@ export function relinquishFocus(): void {
   if (process.platform === 'darwin') app.hide()
 }
 
+/** The live main window, or null — never a destroyed instance. */
 export function getMainWindow(): BrowserWindow | null {
-  return mainWindow
+  return mainWindow && !mainWindow.isDestroyed() ? mainWindow : null
 }

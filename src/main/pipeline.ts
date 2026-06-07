@@ -127,7 +127,13 @@ export function endRecording(): void {
 export async function handleAudio(audio: Buffer, mimeType: string): Promise<void> {
   if (!current) return
   if (audio.length === 0) {
-    patch({ status: 'error', error: 'No audio captured. Hold the shortcut while speaking.' })
+    patch({
+      status: 'error',
+      error:
+        process.platform === 'win32'
+          ? 'No audio captured. Hold the shortcut while speaking — and check Settings → Privacy & security → Microphone allows desktop apps.'
+          : 'No audio captured. Hold the shortcut while speaking.'
+    })
     return
   }
 
