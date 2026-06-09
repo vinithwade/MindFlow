@@ -20,9 +20,15 @@ const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms
  *   6. restore the user's original clipboard after the paste lands.
  *
  * When the captured content was a selection, the paste replaces it in place.
+ *
+ * Returns true when the reply was pasted+sent. Returns false WITHOUT pasting if
+ * we had a captured source app but couldn't re-focus it — pasting blind would
+ * fire the reply into whatever app happens to be frontmost (worst case: sending
+ * a message to the wrong person). In that case the reply is left on the clipboard
+ * so the caller can tell the user to paste it manually.
  */
-export async function insertText(text: string, appProcess?: string): Promise<void> {
-  if (process.platform !== 'darwin' && process.platform !== 'win32') return
+export async function insertText(text: string, appProcess?: string): Promise<boolean> {
+  if (process.platform !== 'darwin' && process.platform !== 'win32') return false
 
   const original = clipboard.readText()
   clipboard.writeText(text)
@@ -35,11 +41,15 @@ export async function insertText(text: string, appProcess?: string): Promise<voi
   // Then pin focus to the exact app the user triggered from, so the paste lands
   // there even if it wasn't the immediately-prior app.
   if (appProcess) {
+    let refocused = true
     try {
       await activateProcess(appProcess)
     } catch {
-      /* focus was already relinquished toward the prior app */
+      refocused = false
     }
+    // Re-activation failed: do NOT paste/Enter into an unknown frontmost app.
+    // Leave the reply on the clipboard (skip the restore below) for manual paste.
+    if (!refocused) return false
   }
 
   // Give the target app a moment to become frontmost and restore its caret.
@@ -56,4 +66,5 @@ export async function insertText(text: string, appProcess?: string): Promise<voi
     await sleep(250)
     clipboard.writeText(original)
   }
+  return true
 }

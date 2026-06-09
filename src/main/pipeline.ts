@@ -132,7 +132,9 @@ export async function handleAudio(audio: Buffer, mimeType: string): Promise<void
       error:
         process.platform === 'win32'
           ? 'No audio captured. Hold the shortcut while speaking — and check Settings → Privacy & security → Microphone allows desktop apps.'
-          : 'No audio captured. Hold the shortcut while speaking.'
+          : process.platform === 'darwin'
+            ? 'No audio captured. Hold the shortcut while speaking — and check System Settings → Privacy & Security → Microphone allows MindFlow.'
+            : 'No audio captured. Hold the shortcut while speaking.'
     })
     return
   }
@@ -202,7 +204,21 @@ export async function insertReply(text?: string): Promise<void> {
   if (!reply) return
   // Learn the user's unique words from the message they're actually sending.
   learnFromReply(reply)
-  await insertText(reply, current?.context.appProcess)
+  const appName = current?.context.app
+  const ok = await insertText(reply, current?.context.appProcess)
+  if (!ok) {
+    // Couldn't refocus the source app, so we didn't paste. relinquishFocus()
+    // already hid us — bring the overlay back and tell the user the reply is on
+    // the clipboard, ready to paste manually. Keep the session so the card shows.
+    showOverlayNearCursor()
+    setOverlayMode('card')
+    const pasteKey = process.platform === 'darwin' ? '⌘V' : 'Ctrl+V'
+    patch({
+      status: 'error',
+      error: `Couldn't switch back to ${appName ?? 'your app'} — your reply is copied. Paste it with ${pasteKey}.`
+    })
+    return
+  }
   current = null
 }
 
