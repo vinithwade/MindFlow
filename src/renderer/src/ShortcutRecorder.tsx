@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { Hotkey } from '@shared/types'
+import { IS_MAC } from './platform'
 
 /**
  * Press-to-record shortcut control. Clicking "Record" tells main to capture the
@@ -33,7 +34,9 @@ export function ShortcutRecorder({
         setError(
           listenerReady
             ? 'No keys detected. Press and hold the key(s), then release while recording.'
-            : "MindFlow's key listener isn't running — your antivirus or Windows Defender most likely blocked it. Allow MindFlow (and WinKeyServer.exe) in your security software, then restart MindFlow."
+            : IS_MAC
+              ? "MindFlow's key listener isn't running — it needs Accessibility permission. Open System Settings → Privacy & Security → Accessibility, enable MindFlow, then try again."
+              : "MindFlow's key listener isn't running — your antivirus or Windows Defender most likely blocked it. Allow MindFlow (and WinKeyServer.exe) in your security software, then restart MindFlow."
         )
       }
     } finally {
